@@ -1,6 +1,6 @@
 {
   "name": "pix-vault-habits",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Habit Tracker with GitHub-Style Visualizations Contributions for Obsidian",
   "main": "main.js",
   "scripts": {
