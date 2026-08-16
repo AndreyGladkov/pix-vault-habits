@@ -22,8 +22,8 @@ jobs:
 
       - name: Build plugin
         run: |
-          npm install
-          npm run build
+          yarn install
+          yarn run build
 
       - name: Generate artifact attestation
         uses: actions/attest@v4
