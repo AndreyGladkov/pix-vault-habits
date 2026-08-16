@@ -5,6 +5,8 @@ const targetVersion = process.env.npm_package_version;
 const manifestPath = "manifest.json";
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 const minAppVersion = manifest.minAppVersion;
+manifest.version = targetVersion;
+writeFileSync(manifestPath, JSON.stringify(manifest, null, "\t"));
 
 const versionsPath = "versions.json";
 const versions = JSON.parse(readFileSync(versionsPath, "utf8"));
