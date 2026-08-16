@@ -1,0 +1,10 @@
+{
+  "id": "pix-vault-habits",
+  "name": "Pix Vault Habits",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Habit Tracker with GitHub-Style Visualizations Contributions for Obsidian",
+  "author": "Andrei Gladkov",
+  "authorUrl": "https://github.com/AndreyGladkov",
+  "isDesktopOnly": false
+}
