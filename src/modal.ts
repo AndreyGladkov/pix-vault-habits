@@ -20,7 +20,6 @@ export class AddHabitModal extends Modal {
       .setDesc(t("modal.add.nameDesc"))
       .addText((text) => {
         text.setPlaceholder(t("modal.add.placeholder"));
-        text.inputEl.style.width = "100%";
         text.onChange((value) => {
           this.habitName = value;
         });

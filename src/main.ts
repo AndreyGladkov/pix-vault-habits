@@ -4,7 +4,7 @@ import {
   Notice,
   Plugin,
   PluginSettingTab,
-  Setting,
+  SettingDefinition,
   WorkspaceLeaf,
 } from "obsidian";
 import { HabitManager } from "./habitManager";
@@ -281,9 +281,6 @@ class HabitPickerModal extends Modal {
   }
 }
 
-/**
- * Settings tab for the plugin.
- */
 class PixVaultHabitsSettingTab extends PluginSettingTab {
   plugin: PixVaultHabitsPlugin;
 
@@ -292,80 +289,76 @@ class PixVaultHabitsSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
-  display(): void {
-    const { containerEl } = this;
-    containerEl.empty();
-
-    new Setting(containerEl)
-      .setName(t("settings.language.name"))
-      .setDesc(t("settings.language.desc"))
-      .addDropdown((dropdown) => {
-        for (const opt of LANGUAGE_OPTIONS) {
-          dropdown.addOption(opt.value, opt.label);
-        }
-        dropdown
-          .setValue(this.plugin.settings.language)
-          .onChange(async (value) => {
-            this.plugin.settings.language = value;
-            this.plugin.applyLocale();
-            await this.plugin.saveSettings();
-            // Re-render the settings tab so labels update immediately.
-            this.display();
-          });
-      });
-
-    new Setting(containerEl)
-      .setName(t("settings.csvPath.name"))
-      .setDesc(t("settings.csvPath.desc"))
-      .addText((text) =>
-        text
-          .setPlaceholder("pixVaultHabits/habits.csv")
-          .setValue(this.plugin.settings.csvPath)
-          .onChange(async (value) => {
-            this.plugin.settings.csvPath = value;
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName(t("settings.numDays.name"))
-      .setDesc(t("settings.numDays.desc"))
-      .addDropdown((dropdown) =>
-        dropdown
-          .addOption("30", t("settings.numDays.30"))
-          .addOption("90", t("settings.numDays.90"))
-          .addOption("365", t("settings.numDays.365"))
-          .setValue(String(this.plugin.settings.numDays))
-          .onChange(async (value) => {
-            this.plugin.settings.numDays = Number(value);
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName(t("settings.doneColor.name"))
-      .setDesc(t("settings.doneColor.desc"))
-      .addColorPicker((color) =>
-        color
-          .setValue(rgbFromColor(this.plugin.settings.doneColor))
-          .onChange(async (value) => {
-            this.plugin.settings.doneColor = value;
-            await this.plugin.saveSettings();
-          }),
-      );
-
-    new Setting(containerEl)
-      .setName(t("settings.emptyColor.name"))
-      .setDesc(t("settings.emptyColor.desc"))
-      .addText((text) =>
-        text
-          .setPlaceholder("var(--background-modifier-border)")
-          .setValue(this.plugin.settings.emptyColor)
-          .onChange(async (value) => {
-            this.plugin.settings.emptyColor = value;
-            await this.plugin.saveSettings();
-          }),
-      );
+  getSettingDefinitions() {
+    return [
+      {
+        name: t("settings.language.name"),
+        desc: t("settings.language.desc"),
+        type: "dropdown",
+        options: LANGUAGE_OPTIONS.reduce(
+          (acc, opt) => {
+            acc[opt.value] = opt.label;
+            return acc;
+          },
+          {} as Record<string, string>,
+        ),
+        value: this.plugin.settings.language,
+        onChange: async (value: string) => {
+          this.plugin.settings.language = value;
+          this.plugin.applyLocale();
+          await this.plugin.saveSettings();
+          // Перерисовываем через display()
+          this.display();
+        },
+      },
+      {
+        name: t("settings.csvPath.name"),
+        desc: t("settings.csvPath.desc"),
+        type: "text",
+        placeholder: "pixVaultHabits/habits.csv",
+        value: this.plugin.settings.csvPath,
+        onChange: async (value: string) => {
+          this.plugin.settings.csvPath = value;
+          await this.plugin.saveSettings();
+        },
+      },
+      {
+        name: t("settings.numDays.name"),
+        desc: t("settings.numDays.desc"),
+        type: "dropdown",
+        options: {
+          "30": t("settings.numDays.30"),
+          "90": t("settings.numDays.90"),
+          "365": t("settings.numDays.365"),
+        },
+        value: String(this.plugin.settings.numDays),
+        onChange: async (value: string) => {
+          this.plugin.settings.numDays = Number(value);
+          await this.plugin.saveSettings();
+        },
+      },
+      {
+        name: t("settings.doneColor.name"),
+        desc: t("settings.doneColor.desc"),
+        type: "color",
+        value: rgbFromColor(this.plugin.settings.doneColor),
+        onChange: async (value: string) => {
+          this.plugin.settings.doneColor = value;
+          await this.plugin.saveSettings();
+        },
+      },
+      {
+        name: t("settings.emptyColor.name"),
+        desc: t("settings.emptyColor.desc"),
+        type: "text",
+        placeholder: "var(--background-modifier-border)",
+        value: this.plugin.settings.emptyColor,
+        onChange: async (value: string) => {
+          this.plugin.settings.emptyColor = value;
+          await this.plugin.saveSettings();
+        },
+      },
+    ];
   }
 }
 

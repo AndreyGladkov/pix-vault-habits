@@ -206,7 +206,6 @@
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
-  margin-top: 0.75rem;
 }
 
 /* ---------- Habit picker modal ---------- */
@@ -228,4 +227,8 @@
 
 .pvhabits-picker-item:hover {
   background: var(--background-modifier-hover);
+}
+
+.setting-item-control input {
+  width: 100%;
 }

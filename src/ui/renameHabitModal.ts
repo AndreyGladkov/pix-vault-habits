@@ -19,7 +19,6 @@ export class RenameHabitModal extends Modal {
       .setName(t("modal.rename.nameLabel"))
       .addText((text) => {
         text.setValue(this.name);
-        text.inputEl.style.width = "100%";
         text.onChange((value) => {
           this.name = value;
         });
