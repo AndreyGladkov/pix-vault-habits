@@ -1,4 +1,46 @@
-Плагин **Pix Vault Habits** для Obsidian.
+# Pix Vault Habits Plugin for Obsidian
+
+A plugin that lets you create habits and track your progress directly in Obsidian — just like you would in a notebook.
+
+**Project structure:**
+```
+pix-vault-habits/
+├── src/
+│   ├── main.ts          # Plugin: commands, view, settings, handlers
+│   ├── view.ts          # HabitTrackerView — GitHub-style grid
+│   ├── habitManager.ts  # Read/write CSV via Vault API
+│   ├── modal.ts         # AddHabitModal
+│   ├── csv.ts           # CSV parsing/serialization, IDs, dates
+│   ├── i18n/            # Localization (en, ru, fr, de)
+│   │   ├── index.ts     # t(), setLocale(), date formatting, day/month labels
+│   │   ├── types.ts     # Locale / LocaleData types
+│   │   └── locales/     # en.ts, ru.ts, fr.ts, de.ts
+│   └── ui/              # UI components (grid, habit block, modals)
+├── styles.css           # Grid and interface styles
+├── manifest.json
+├── package.json
+├── tsconfig.json
+├── esbuild.config.mjs
+├── versions.json
+└── version-bump.mjs
+```
+
+## Implemented Features
+
+- **CSV storage**: the `pixVaultHabits/habits.csv` file is created automatically on first launch in the visible `pixVaultHabits` folder at the root of your vault. Row format: `<ID>,<Name>,<Date>,<Status 1|0>,<Created date>`. When writing to an existing date, the status is updated without creating duplicates. The CSV parser supports commas, quotes, and line breaks in habit names (RFC-4180).
+- **Commands (Ctrl+P)**: `Add new habit`, `Open habit tracker`, `Mark today as done` (with habit selection via picker).
+- **GitHub-style grid**: for each habit — a header, statistics (streak 🔥 + total ✅), month labels, week columns (Mon–Sun), 12×12 px squares.
+- **Interaction**: clicking a square toggles the status (works for both today and past days), today is highlighted with an outline, tooltip shows "Date: DD.MM.YYYY, Completed: Yes/No", horizontal scrolling, "Today", "Rename", and "Delete" buttons.
+- **Settings**: CSV path, number of days (30/90/365), completed color, uncompleted color.
+- **Themes**: colors adapt through Obsidian CSS variables (light/dark).
+
+## How to Use
+
+Copy the `pix-vault-habits` folder into your Obsidian plugins directory (`.obsidian/plugins/`) and enable the plugin in the settings. To rebuild after making changes, run `npm run build` in the project directory.
+
+To start dev mode with auto-rebuild: `npm run dev`.
+
+# Плагин **Pix Vault Habits** для Obsidian.
 
 Позовляет создавать привычки и отмечать прогресс по ним прямо в Obsidian. Так как бы вы это делали в блокноте.
 
