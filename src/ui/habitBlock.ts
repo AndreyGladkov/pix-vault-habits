@@ -62,13 +62,6 @@ export const renderHabitBlock = (
   // Grid wrapper (scrollable horizontally). $0.scrollTo({left: $0.scrollWidth, behavior: 'smooth'});
   const gridScroll = block.createDiv({ cls: "pvhabits-grid-scroll" });
   renderHabitGrid(habit, dayMap, gridScroll, plugin);
-
-  if (gridScroll.offsetWidth + gridScroll.scrollLeft < gridScroll.scrollWidth) {
-    gridScroll.scrollTo({
-      left: gridScroll.offsetWidth - gridScroll.scrollLeft,
-      behavior: "smooth",
-    });
-  }
 };
 
 const openRenameModal = (

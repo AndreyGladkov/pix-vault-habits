@@ -92,6 +92,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 0.6rem;
+  direction: rtl;
 }
 
 .pvhabits-grid-wrapper {
@@ -99,6 +100,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: max-content;
+  direction: ltr;
 }
 
 /* Month labels row */
