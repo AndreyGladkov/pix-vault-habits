@@ -177,7 +177,7 @@
 }
 
 .pvhabits-cell-empty {
-  background: transparent !important;
+  background: transparent;
   cursor: default;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .pvhabits-cell-future {
-  background: transparent !important;
+  background: transparent;
   cursor: default;
   border: 1px dashed var(--background-modifier-border);
   box-sizing: border-box;
