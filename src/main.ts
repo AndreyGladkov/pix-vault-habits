@@ -4,7 +4,6 @@ import {
   Notice,
   Plugin,
   PluginSettingTab,
-  SettingDefinition,
   WorkspaceLeaf,
 } from "obsidian";
 import { HabitManager } from "./habitManager";
