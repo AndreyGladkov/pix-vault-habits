@@ -19,7 +19,7 @@ export class HabitTrackerView extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Pix Vault Habits";
+    return "Pix vault habits";
   }
 
   getIcon(): string {
@@ -57,8 +57,8 @@ export class HabitTrackerView extends ItemView {
       text: t("view.refreshButton"),
       cls: "pvhabits-btn",
     });
-    refreshBtn.addEventListener("click", async () => {
-      await this.render();
+    refreshBtn.addEventListener("click", () => {
+      void this.render();
     });
 
     // --- Habits list ---

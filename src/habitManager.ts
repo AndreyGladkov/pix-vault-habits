@@ -62,9 +62,7 @@ export class HabitManager {
   }
 
   async readRaw(): Promise<string> {
-    console.log("readRaw");
     const file = await this.ensureFile();
-    console.log("readRaw file:", file);
     return this.app.vault.read(file);
   }
 
@@ -75,9 +73,7 @@ export class HabitManager {
 
   async loadHabits(): Promise<HabitData> {
     const text = await this.readRaw();
-    console.log("raw", text);
     const rows = parseCsv(text);
-    console.log("parsed", rows);
 
     const habitsById = new Map<string, HabitRecord>();
     const statuses: HabitStatusMap = {};
