@@ -1,5 +1,7 @@
 import {
   App,
+  ConfirmationModal,
+  getLanguage,
   Modal,
   Notice,
   Plugin,
@@ -55,25 +57,25 @@ export default class PixVaultHabitsPlugin extends Plugin {
     this.registerView(VIEW_TYPE, (leaf) => new HabitTrackerView(leaf, this));
 
     // Ribbon icon to open the tracker.
-    this.addRibbonIcon("activity", "Pix Vault Habits", () => {
-      this.activateView();
+    this.addRibbonIcon("activity", "Pix vault habits", () => {
+      void this.activateView();
     });
 
     // Commands.
     this.addCommand({
-      id: "pix-vault-habits-add",
+      id: "add",
       name: t("command.addHabit"),
       callback: () => this.openAddHabitModal(),
     });
 
     this.addCommand({
-      id: "pix-vault-habits-open",
+      id: "open",
       name: t("command.openTracker"),
       callback: () => this.activateView(),
     });
 
     this.addCommand({
-      id: "pix-vault-habits-mark-today",
+      id: "mark-today",
       name: t("command.markToday"),
       callback: () => this.openHabitPicker("today"),
     });
@@ -87,7 +89,11 @@ export default class PixVaultHabitsPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign(
+      {},
+      DEFAULT_SETTINGS,
+      (await this.loadData()) as Partial<PixVaultHabitsSettings>,
+    );
   }
 
   async saveSettings() {
@@ -102,10 +108,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
    * Obsidian interface language and activate the matching locale.
    */
   applyLocale() {
-    const obsidianLang =
-      (this.app as any).locale ||
-      (this.app as any).vault?.getConfig?.("language");
-    const locale = resolveLocale(this.settings.language, obsidianLang);
+    const locale = resolveLocale(this.settings.language, getLanguage());
     setLocale(locale);
   }
 
@@ -126,7 +129,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
       await leaf.setViewState({ type: VIEW_TYPE, active: true });
     }
 
-    workspace.revealLeaf(leaf);
+    void workspace.revealLeaf(leaf);
     await this.refreshView();
   }
 
@@ -184,8 +187,21 @@ export default class PixVaultHabitsPlugin extends Plugin {
     const data = await this.habitManager.loadHabits();
     const habit = data.habits.find((h) => h.id === habitId);
     const name = habit?.name ?? habitId;
-    const confirmed = confirm(t("confirm.deleteHabit", { name }));
-    if (!confirmed) return;
+
+    const modal = new ConfirmationModal(this.app);
+    modal.setTitle(t("confirm.deleteHabit", { name }));
+    modal.addCancelButton(t("modal.cancel"));
+    modal.addButton((btn) => {
+      btn.setButtonText(t("confirm.delete"));
+      btn.setDestructive().setCta();
+      btn.onClick(() => {
+        void this.performDelete(habitId, name);
+      });
+    });
+    modal.open();
+  }
+
+  private async performDelete(habitId: string, name: string) {
     try {
       await this.habitManager.deleteHabit(habitId);
       new Notice(t("notice.habitDeleted", { name }));
@@ -234,12 +250,12 @@ export default class PixVaultHabitsPlugin extends Plugin {
  */
 class HabitPickerModal extends Modal {
   private manager: HabitManager;
-  private onPick: (habitId: string) => void;
+  private onPick: (habitId: string) => void | Promise<void>;
 
   constructor(
     app: App,
     manager: HabitManager,
-    onPick: (habitId: string) => void,
+    onPick: (habitId: string) => void | Promise<void>,
   ) {
     super(app);
     this.manager = manager;
@@ -267,10 +283,10 @@ class HabitPickerModal extends Modal {
     const list = contentEl.createDiv({ cls: "pvhabits-picker-list" });
     for (const habit of data.habits) {
       const item = list.createDiv({ cls: "pvhabits-picker-item" });
-      item.createEl("span", { text: habit.name });
+      item.createSpan({ text: habit.name });
       item.addEventListener("click", () => {
         this.close();
-        this.onPick(habit.id);
+        void this.onPick(habit.id);
       });
     }
   }
@@ -306,8 +322,8 @@ class PixVaultHabitsSettingTab extends PluginSettingTab {
           this.plugin.settings.language = value;
           this.plugin.applyLocale();
           await this.plugin.saveSettings();
-          // Перерисовываем через display()
-          this.display();
+          // Re-render the tab so the dropdown reflects the new language.
+          this.update();
         },
       },
       {

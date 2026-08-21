@@ -3,9 +3,9 @@ import { t } from "./i18n";
 
 export class AddHabitModal extends Modal {
   private habitName = "";
-  private onSubmit: (name: string) => void;
+  private onSubmit: (name: string) => void | Promise<void>;
 
-  constructor(app: App, onSubmit: (name: string) => void) {
+  constructor(app: App, onSubmit: (name: string) => void | Promise<void>) {
     super(app);
     this.onSubmit = onSubmit;
   }
@@ -54,7 +54,7 @@ export class AddHabitModal extends Modal {
       return;
     }
     this.close();
-    this.onSubmit(name);
+    void this.onSubmit(name);
   }
 
   onClose() {

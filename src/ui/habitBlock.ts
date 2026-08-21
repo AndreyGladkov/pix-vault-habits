@@ -16,7 +16,7 @@ export const renderHabitBlock = (
   const block = container.createDiv({ cls: "pvhabits-habit-block" });
 
   const titleRow = block.createDiv({ cls: "pvhabits-habit-title-row" });
-  const title = titleRow.createEl("span", {
+  const title = titleRow.createSpan({
     cls: "pvhabits-habit-name",
     text: habit.name,
   });
@@ -26,7 +26,7 @@ export const renderHabitBlock = (
   const dayMap = data.statuses[habit.id] || {};
   const streak = computeStreak(dayMap);
   const doneCount = countDone(dayMap);
-  titleRow.createEl("span", {
+  titleRow.createSpan({
     cls: "pvhabits-habit-stats",
     text: t("habit.stats", { streak, done: doneCount }),
   });
@@ -37,8 +37,8 @@ export const renderHabitBlock = (
     text: t("habit.today"),
     cls: "pvhabits-btn pvhabits-btn-today",
   });
-  todayBtn.addEventListener("click", async () => {
-    await plugin.toggleToday(habit.id);
+  todayBtn.addEventListener("click", () => {
+    void plugin.toggleToday(habit.id);
   });
 
   const renameBtn = actions.createEl("button", {
@@ -55,8 +55,8 @@ export const renderHabitBlock = (
     cls: "pvhabits-btn pvhabits-btn-icon",
     attr: { "aria-label": t("habit.deleteAria") },
   });
-  deleteBtn.addEventListener("click", async () => {
-    await plugin.deleteHabit(habit.id);
+  deleteBtn.addEventListener("click", () => {
+    void plugin.deleteHabit(habit.id);
   });
 
   // Grid wrapper (scrollable horizontally). $0.scrollTo({left: $0.scrollWidth, behavior: 'smooth'});

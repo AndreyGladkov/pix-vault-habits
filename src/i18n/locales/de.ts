@@ -21,6 +21,7 @@ export const de: LocaleData = {
 
     // Confirm dialog
     "confirm.deleteHabit": "Gewohnheit „{name}“ löschen? Alle Daten gehen verloren.",
+    "confirm.delete": "Löschen",
 
     // Habit picker modal
     "picker.title": "Gewohnheit wählen",

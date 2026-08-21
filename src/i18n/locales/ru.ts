@@ -21,6 +21,7 @@ export const ru: LocaleData = {
 
     // Confirm dialog
     "confirm.deleteHabit": "Удалить привычку «{name}»? Все данные будут потеряны.",
+    "confirm.delete": "Удалить",
 
     // Habit picker modal
     "picker.title": "Выберите привычку",

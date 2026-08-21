@@ -60,7 +60,7 @@ export const renderHabitGrid = (
     const month = firstDay ? dateFromString(firstDay).getMonth() : -1;
     if (month !== lastMonth) {
       if (lastMonth !== -1 && w > runStart) {
-        const label = monthLabelsEl.createEl("span", {
+        const label = monthLabelsEl.createSpan({
           cls: "pvhabits-month-label",
           text: monthLabels[lastMonth],
         });
@@ -76,7 +76,7 @@ export const renderHabitGrid = (
 
   const weekdayCol = body.createDiv({ cls: "pvhabits-weekday-col" });
   for (const label of getWeekdayLabels()) {
-    weekdayCol.createEl("span", {
+    weekdayCol.createSpan({
       cls: "pvhabits-weekday-label",
       text: label,
     });
@@ -120,15 +120,15 @@ export const renderHabitGrid = (
       cell.setAttribute("title", tooltip);
       cell.setAttribute("aria-label", tooltip);
 
-      cell.addEventListener("click", async () => {
-        await plugin.toggleDate(habit.id, dateStr);
+      cell.addEventListener("click", () => {
+        void plugin.toggleDate(habit.id, dateStr);
       });
     }
   }
 
   const weekdayColEnd = body.createDiv({ cls: "pvhabits-weekday-col" });
   for (const label of getWeekdayLabels()) {
-    weekdayColEnd.createEl("span", {
+    weekdayColEnd.createSpan({
       cls: "pvhabits-weekday-label",
       text: label,
     });
