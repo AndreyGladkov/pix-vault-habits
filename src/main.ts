@@ -6,6 +6,7 @@ import {
   Notice,
   Plugin,
   PluginSettingTab,
+  SettingDefinitionItem,
   WorkspaceLeaf,
 } from "obsidian";
 import { HabitManager } from "./habitManager";
@@ -22,11 +23,11 @@ import {
 } from "./i18n";
 
 interface PixVaultHabitsSettings {
+  language: string;
   csvPath: string;
   numDays: number;
   doneColor: string;
   emptyColor: string;
-  language: string;
 }
 
 const DEFAULT_SETTINGS: PixVaultHabitsSettings = {
@@ -296,7 +297,7 @@ class HabitPickerModal extends Modal {
   }
 }
 
-class PixVaultHabitsSettingTab extends PluginSettingTab {
+export class PixVaultHabitsSettingTab extends PluginSettingTab {
   plugin: PixVaultHabitsPlugin;
 
   constructor(app: App, plugin: PixVaultHabitsPlugin) {
@@ -304,87 +305,63 @@ class PixVaultHabitsSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
-  getSettingDefinitions() {
+  getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
         name: t("settings.language.name"),
         desc: t("settings.language.desc"),
-        type: "dropdown",
-        options: LANGUAGE_OPTIONS.reduce(
-          (acc, opt) => {
-            acc[opt.value] = opt.label;
-            return acc;
-          },
-          {} as Record<string, string>,
-        ),
-        value: this.plugin.settings.language,
-        onChange: async (value: string) => {
-          this.plugin.settings.language = value;
-          this.plugin.applyLocale();
-          await this.plugin.saveSettings();
-          // Re-render the tab so the dropdown reflects the new language.
-          this.update();
+        control: {
+          type: "dropdown",
+          key: "language",
+          options: LANGUAGE_OPTIONS.reduce(
+            (acc, opt) => {
+              acc[opt.value] = opt.label;
+              return acc;
+            },
+            {} as Record<string, string>,
+          ),
         },
       },
       {
         name: t("settings.csvPath.name"),
         desc: t("settings.csvPath.desc"),
-        type: "text",
-        placeholder: "pixVaultHabits/habits.csv",
-        value: this.plugin.settings.csvPath,
-        onChange: async (value: string) => {
-          this.plugin.settings.csvPath = value;
-          await this.plugin.saveSettings();
+        control: {
+          type: "text",
+          key: "csvPath",
+          placeholder: "pixVaultHabits/habits.csv",
         },
       },
       {
         name: t("settings.numDays.name"),
         desc: t("settings.numDays.desc"),
-        type: "dropdown",
-        options: {
-          "30": t("settings.numDays.30"),
-          "90": t("settings.numDays.90"),
-          "365": t("settings.numDays.365"),
-        },
-        value: String(this.plugin.settings.numDays),
-        onChange: async (value: string) => {
-          this.plugin.settings.numDays = Number(value);
-          await this.plugin.saveSettings();
+        control: {
+          type: "dropdown",
+          key: "numDays",
+          options: {
+            30: t("settings.numDays.30"),
+            90: t("settings.numDays.90"),
+            365: t("settings.numDays.365"),
+          },
         },
       },
       {
         name: t("settings.doneColor.name"),
         desc: t("settings.doneColor.desc"),
-        type: "color",
-        value: rgbFromColor(this.plugin.settings.doneColor),
-        onChange: async (value: string) => {
-          this.plugin.settings.doneColor = value;
-          await this.plugin.saveSettings();
+        control: {
+          type: "text",
+          key: "doneColor",
+          placeholder: "#ff0000",
         },
       },
       {
         name: t("settings.emptyColor.name"),
         desc: t("settings.emptyColor.desc"),
-        type: "text",
-        placeholder: "var(--background-modifier-border)",
-        value: this.plugin.settings.emptyColor,
-        onChange: async (value: string) => {
-          this.plugin.settings.emptyColor = value;
-          await this.plugin.saveSettings();
+        control: {
+          type: "text",
+          key: "emptyColor",
+          placeholder: "var(--background-modifier-border)",
         },
       },
     ];
   }
 }
-
-const rgbFromColor = (color: string): string => {
-  if (/^#[0-9a-fA-F]{6}$/.test(color)) {
-    return color;
-  }
-  if (/^#[0-9a-fA-F]{3}$/.test(color)) {
-    const [r, g, b] = color.slice(1).split("");
-    return `#${r}${r}${g}${g}${b}${b}`;
-  }
-  // CSS variable / named color — the picker cannot display these, fall back.
-  return "#40c463";
-};
