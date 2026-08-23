@@ -1,7 +1,8 @@
-## Unreleased
+## 1.1.4 (2026-08-23)
 
 ### Fix
 
+- **src/main.ts**: Fix setting change
 - correct corrupted MIT license text to standard template
 
 ### Refactor
