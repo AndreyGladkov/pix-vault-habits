@@ -73,7 +73,7 @@ export const getMonthLabels = (): string[] => currentLocale.monthLabels;
 export const formatDisplayDate = (dateStr: string): string => {
   const [y, m, d] = dateStr.split("-");
   return currentLocale.dateFormat
-    .replace("YYYY", y)
-    .replace("MM", m)
-    .replace("DD", d);
+    .replace("YYYY", y ?? "")
+    .replace("MM", m ?? "")
+    .replace("DD", d ?? "");
 };
