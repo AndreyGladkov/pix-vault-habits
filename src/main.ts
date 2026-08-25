@@ -39,8 +39,8 @@ const DEFAULT_SETTINGS: PixVaultHabitsSettings = {
 };
 
 export default class PixVaultHabitsPlugin extends Plugin {
-  settings: PixVaultHabitsSettings;
-  habitManager: HabitManager;
+  settings!: PixVaultHabitsSettings;
+  habitManager!: HabitManager;
 
   async onload() {
     await this.loadSettings();
@@ -118,7 +118,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
 
     let leaf: WorkspaceLeaf;
     const leaves = workspace.getLeavesOfType(VIEW_TYPE);
-    if (leaves.length > 0) {
+    if (leaves.length > 0 && leaves[0]) {
       leaf = leaves[0];
     } else {
       const newLeaf = workspace.getRightLeaf(false);
@@ -157,33 +157,20 @@ export default class PixVaultHabitsPlugin extends Plugin {
     }).open();
   }
 
-  /**
-   * Toggle the status of a habit for today.
-   */
   async toggleToday(habitId: string) {
     await this.toggleDate(habitId, formatDate());
   }
 
-  /**
-   * Toggle the status of a habit for a specific date and refresh the view.
-   */
-  async toggleDate(habitId: string, date: string) {
+  async toggleDate(habitId: string, date: string): Promise<void> {
     try {
-      const newStatus = await this.habitManager.toggleHabitStatus(
-        habitId,
-        date,
-      );
+      await this.habitManager.toggleHabitStatus(habitId, date);
       await this.refreshView();
-      return newStatus;
     } catch (err) {
       console.error("[Pix Vault Habits] toggleDate error:", err);
       new Notice(t("notice.toggleFailed"));
     }
   }
 
-  /**
-   * Delete a habit after confirmation.
-   */
   async deleteHabit(habitId: string) {
     const data = await this.habitManager.loadHabits();
     const habit = data.habits.find((h) => h.id === habitId);

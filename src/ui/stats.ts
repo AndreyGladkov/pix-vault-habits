@@ -17,5 +17,9 @@ export const computeStreak = (dayMap: Record<string, number>): number => {
 };
 
 export const countDone = (dayMap: Record<string, number>): number => {
-  return Object.values(dayMap).filter((v) => v === 1).length;
+  let count = 0;
+  for (const key in dayMap) {
+    if (dayMap[key] === 1) count++;
+  }
+  return count;
 };

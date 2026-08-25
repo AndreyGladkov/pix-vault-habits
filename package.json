@@ -5,9 +5,10 @@
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
-    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "build": "npm run lint && npm run ts-check && node esbuild.config.mjs production",
     "lint": "eslint .",
-    "version": "node version-bump.mjs && git add manifest.json versions.json"
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "ts-check": "tsc -noEmit -skipLibCheck"
   },
   "keywords": [
     "obsidian",
@@ -20,7 +21,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/node": "^22.15.17",
-    "esbuild": "0.17.3",
+    "esbuild": "^0.28.2",
     "eslint": "^9.39.4",
     "eslint-plugin-obsidianmd": "^0.4.0",
     "globals": "^17.6.0",

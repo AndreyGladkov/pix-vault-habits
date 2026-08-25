@@ -91,7 +91,7 @@ export class HabitManager {
         row[4] || formatDate(),
       ];
 
-      if (!id || !date) continue;
+      if (!id || !date || !name) continue;
 
       const status = statusStr === "1" ? 1 : 0;
 

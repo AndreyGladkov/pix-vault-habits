@@ -63,7 +63,7 @@ export const parseCsv = (text: string): string[][] => {
   }
 
   return rows;
-}
+};
 
 export const toCsv = (rows: string[][]): string => {
   const lines: string[] = [];
@@ -79,7 +79,7 @@ export const toCsv = (rows: string[][]): string => {
   }
 
   return lines.join("\n");
-}
+};
 
 export const generateId = (name: string): string => {
   const slug = name
@@ -89,7 +89,7 @@ export const generateId = (name: string): string => {
     .replace(/^-+|-+$/g, "");
   const suffix = Math.random().toString(36).substring(2, 6);
   return `habit_${slug}-${suffix}`;
-}
+};
 
 export const formatDate = (date?: Date): string => {
   const d = date || new Date();
@@ -97,9 +97,14 @@ export const formatDate = (date?: Date): string => {
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
-}
+};
 
 export const dateFromString = (dateStr: string): Date => {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
+  const [y, m, d] = dateStr.split("-");
+
+  if (y && m && d) {
+    return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10));
+  }
+
+  throw new Error("date string invalid format");
+};
