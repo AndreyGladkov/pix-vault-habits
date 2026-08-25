@@ -1,3 +1,9 @@
+## 1.1.5 (2026-08-25)
+
+### Fix
+
+- eslint and typescript errors
+
 ## 1.1.4 (2026-08-23)
 
 ### Fix
