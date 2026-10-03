@@ -1,6 +1,5 @@
 import {
   App,
-  ConfirmationModal,
   debounce,
   getLanguage,
   Notice,
@@ -10,12 +9,20 @@ import {
   WorkspaceLeaf,
 } from "obsidian";
 import { HabitManager } from "./habitManager";
-import type { HabitRecord } from "./habitManager";
-import { TrackerStore, type DisplaySettings } from "./store";
+import { NO_CATEGORY, type HabitData, type HabitRecord } from "./habitData";
+import {
+  withCategory,
+  withoutCategory,
+  withRenamedCategory,
+} from "./categories";
+import { selectCategories, TrackerStore, type DisplaySettings } from "./store";
 import type { TrackerActions } from "./ui/HabitTracker";
 import {
   HabitPickerModal,
+  openAddCategoryModal,
   openAddHabitModal,
+  openConfirmDeleteModal,
+  openRenameCategoryModal,
   openRenameHabitModal,
 } from "./ui/modals";
 import { HabitTrackerView, VIEW_TYPE } from "./view";
@@ -34,6 +41,7 @@ interface PixVaultHabitsSettings {
   numDays: number;
   doneColor: string;
   emptyColor: string;
+  categories: string[];
 }
 
 const DEFAULT_SETTINGS: PixVaultHabitsSettings = {
@@ -42,6 +50,7 @@ const DEFAULT_SETTINGS: PixVaultHabitsSettings = {
   doneColor: "#40c463",
   emptyColor: "var(--background-modifier-border)",
   language: AUTO_LANGUAGE,
+  categories: [],
 };
 
 export default class PixVaultHabitsPlugin extends Plugin {
@@ -50,11 +59,15 @@ export default class PixVaultHabitsPlugin extends Plugin {
   private store!: TrackerStore;
 
   private readonly actions: TrackerActions = {
-    addHabit: () => this.openAddHabitModal(),
+    addHabit: (category) => void this.addHabit(category),
     refresh: () => void this.reloadHabits(),
     toggleDay: (habitId, date) => void this.toggleDate(habitId, date),
-    renameHabit: (habit) => this.openRenameHabitModal(habit),
+    renameHabit: (habit) => void this.renameHabit(habit),
     deleteHabit: (habit) => this.deleteHabit(habit),
+    moveHabit: (habit, category) => void this.moveHabit(habit, category),
+    addCategory: () => this.addCategory(),
+    renameCategory: (name) => this.renameCategory(name),
+    deleteCategory: (name) => this.deleteCategory(name),
   };
 
   private readonly reloadFromNewPath = debounce(
@@ -74,6 +87,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
     this.store = new TrackerStore(
       () => this.habitManager.loadHabits(),
       this.displaySettings(),
+      this.settings.categories,
     );
 
     this.app.workspace.onLayoutReady(() => {
@@ -94,7 +108,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
     this.addCommand({
       id: "add",
       name: t("command.addHabit"),
-      callback: () => this.openAddHabitModal(),
+      callback: () => void this.addHabit(NO_CATEGORY),
     });
 
     this.addCommand({
@@ -165,67 +179,136 @@ export default class PixVaultHabitsPlugin extends Plugin {
     await this.store.reload();
   }
 
-  openAddHabitModal() {
-    openAddHabitModal(this.app, async (name) => {
-      try {
-        await this.habitManager.addHabit(name);
-        new Notice(t("notice.habitAdded", { name }));
-        await this.reloadHabits();
-      } catch (err) {
-        console.error("[Pix Vault Habits] addHabit error:", err);
-        new Notice(t("notice.addHabitFailed"));
-      }
-    });
-  }
-
-  async toggleDate(habitId: string, date: string): Promise<number | null> {
+  private async attempt<T>(
+    label: string,
+    failureNotice: string,
+    operation: () => Promise<T>,
+  ): Promise<T | null> {
     try {
-      const status = await this.habitManager.toggleHabitStatus(habitId, date);
-      await this.reloadHabits();
-      return status;
+      return await operation();
     } catch (err) {
-      console.error("[Pix Vault Habits] toggleDate error:", err);
-      new Notice(t("notice.toggleFailed"));
+      console.error(`[Pix Vault Habits] ${label} error:`, err);
+      new Notice(t(failureNotice));
       return null;
     }
   }
 
-  deleteHabit(habit: HabitRecord) {
-    const modal = new ConfirmationModal(this.app);
-    modal.setTitle(t("confirm.deleteHabit", { name: habit.name }));
-    modal.addCancelButton(t("modal.cancel"));
-    modal.addButton((btn) => {
-      btn.setButtonText(t("confirm.delete"));
-      btn.setDestructive().setCta();
-      btn.onClick(() => {
-        void this.performDelete(habit);
-      });
-    });
-    modal.open();
+  private async addHabit(category: string) {
+    const name = await openAddHabitModal(this.app);
+    if (!name) return;
+    const id = await this.attempt("addHabit", "notice.addHabitFailed", () =>
+      this.habitManager.addHabit(name, category),
+    );
+    if (id === null) return;
+    new Notice(t("notice.habitAdded", { name }));
+    await this.reloadHabits();
   }
 
-  private async performDelete({ id, name }: HabitRecord) {
-    try {
-      await this.habitManager.deleteHabit(id);
-      new Notice(t("notice.habitDeleted", { name }));
-      await this.reloadHabits();
-    } catch (err) {
-      console.error("[Pix Vault Habits] deleteHabit error:", err);
-      new Notice(t("notice.deleteHabitFailed"));
-    }
+  async toggleDate(habitId: string, date: string): Promise<number | null> {
+    const status = await this.attempt("toggleDate", "notice.toggleFailed", () =>
+      this.habitManager.toggleHabitStatus(habitId, date),
+    );
+    if (status !== null) await this.reloadHabits();
+    return status;
   }
 
-  private openRenameHabitModal(habit: HabitRecord) {
-    openRenameHabitModal(this.app, habit.name, async (name) => {
-      try {
-        await this.habitManager.renameHabit(habit.id, name);
-        new Notice(t("notice.habitRenamed"));
+  deleteHabit({ id, name }: HabitRecord) {
+    openConfirmDeleteModal(
+      this.app,
+      t("confirm.deleteHabit", { name }),
+      async () => {
+        const deleted = await this.attempt(
+          "deleteHabit",
+          "notice.deleteHabitFailed",
+          () => this.habitManager.deleteHabit(id).then(() => true),
+        );
+        if (!deleted) return;
+        new Notice(t("notice.habitDeleted", { name }));
         await this.reloadHabits();
-      } catch (err) {
-        console.error("[Pix Vault Habits] renameHabit error:", err);
-        new Notice(t("notice.renameHabitFailed"));
-      }
-    });
+      },
+    );
+  }
+
+  private async renameHabit(habit: HabitRecord) {
+    const name = await openRenameHabitModal(this.app, habit.name);
+    if (!name) return;
+    const renamed = await this.attempt(
+      "renameHabit",
+      "notice.renameHabitFailed",
+      () => this.habitManager.renameHabit(habit.id, name).then(() => true),
+    );
+    if (!renamed) return;
+    new Notice(t("notice.habitRenamed"));
+    await this.reloadHabits();
+  }
+
+  private async moveHabit(habit: HabitRecord, category: string) {
+    const data = await this.attempt("moveHabit", "notice.moveHabitFailed", () =>
+      this.habitManager.setHabitCategory(habit.id, category),
+    );
+    if (data) this.store.applyChanges({ data });
+  }
+
+  private async addCategory(): Promise<string | null> {
+    const name = await openAddCategoryModal(this.app);
+    if (!name) return null;
+    const categories = withCategory(
+      selectCategories(this.store.getSnapshot()),
+      name,
+    );
+    if (!categories) {
+      new Notice(t("notice.categoryExists", { name }));
+      return null;
+    }
+    await this.saveCategories(categories);
+    return name;
+  }
+
+  private async renameCategory(from: string): Promise<string | null> {
+    const to = await openRenameCategoryModal(this.app, from);
+    if (!to || to === from) return null;
+    const categories = withRenamedCategory(
+      selectCategories(this.store.getSnapshot()),
+      from,
+      to,
+    );
+    if (!categories) {
+      new Notice(t("notice.categoryExists", { name: to }));
+      return null;
+    }
+    const data = await this.attempt(
+      "renameCategory",
+      "notice.renameCategoryFailed",
+      () => this.habitManager.replaceCategory(from, to),
+    );
+    if (!data) return null;
+    await this.saveCategories(categories, data);
+    return to;
+  }
+
+  private deleteCategory(name: string) {
+    openConfirmDeleteModal(
+      this.app,
+      t("confirm.deleteCategory", { name }),
+      async () => {
+        const data = await this.attempt(
+          "deleteCategory",
+          "notice.deleteCategoryFailed",
+          () => this.habitManager.replaceCategory(name, NO_CATEGORY),
+        );
+        if (!data) return;
+        await this.saveCategories(
+          withoutCategory(selectCategories(this.store.getSnapshot()), name),
+          data,
+        );
+      },
+    );
+  }
+
+  private async saveCategories(categories: string[], data?: HabitData) {
+    this.settings = { ...this.settings, categories };
+    await this.saveData(this.settings);
+    this.store.applyChanges({ categories, data });
   }
 
   private async markTodayViaPicker() {

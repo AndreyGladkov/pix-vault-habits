@@ -60,6 +60,23 @@ export const de: LocaleData = {
     "grid.tooltipDone": "Ja",
     "grid.tooltipNotDone": "Nein",
 
+    // Categories
+    "tabs.all": "Alle",
+    "tabs.uncategorized": "Ohne Kategorie",
+    "tabs.empty": "Noch keine Gewohnheiten in dieser Kategorie.",
+    "tabs.addCategory": "Kategorie hinzufügen",
+    "tabs.deleteCategoryAria": "Kategorie löschen",
+    "habit.categoryAria": "Kategorie",
+    "modal.category.title": "Neue Kategorie",
+    "modal.category.nameLabel": "Name",
+    "modal.category.placeholder": "z. B. Gesundheit",
+    "modal.renameCategory.title": "Kategorie umbenennen",
+    "confirm.deleteCategory": "Kategorie „{name}“ löschen? Die Gewohnheiten bleiben ohne Kategorie erhalten.",
+    "notice.categoryExists": "Kategorie „{name}“ existiert bereits",
+    "notice.moveHabitFailed": "Gewohnheit konnte nicht verschoben werden",
+    "notice.renameCategoryFailed": "Kategorie konnte nicht umbenannt werden",
+    "notice.deleteCategoryFailed": "Kategorie konnte nicht gelöscht werden",
+
     // Settings
     "settings.csvPath.name": "CSV-Dateipfad",
     "settings.csvPath.desc": "Speicherort der Gewohnheitsdatendatei im Tresor.",

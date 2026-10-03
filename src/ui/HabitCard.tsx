@@ -1,13 +1,15 @@
 import type { Calendar } from "../calendar";
-import type { HabitRecord } from "../habitManager";
+import { NO_CATEGORY, type HabitRecord } from "../habitData";
 import { t } from "../i18n";
 import { ContributionGrid } from "./ContributionGrid";
+import { HorizontalScroller } from "./HorizontalScroller";
 import { computeStreak, countDone } from "./stats";
 import type { TrackerActions } from "./HabitTracker";
 
 interface HabitCardProps {
   habit: HabitRecord;
   dayMap: Record<string, number>;
+  categories: string[];
   calendar: Calendar;
   today: string;
   actions: TrackerActions;
@@ -16,6 +18,7 @@ interface HabitCardProps {
 export const HabitCard = ({
   habit,
   dayMap,
+  categories,
   calendar,
   today,
   actions,
@@ -37,28 +40,47 @@ export const HabitCard = ({
             done: countDone(dayMap),
           })}
         </span>
-        <div className="pvhabits-habit-actions">
-          <button
-            className="pvhabits-btn pvhabits-btn-today"
-            onClick={() => toggleDay(today)}
-          >
-            {t("habit.today")}
-          </button>
-          <button
-            className="pvhabits-btn pvhabits-btn-icon"
-            aria-label={t("habit.renameAria")}
-            onClick={() => actions.renameHabit(habit)}
-          >
-            ✎
-          </button>
-          <button
-            className="pvhabits-btn pvhabits-btn-icon"
-            aria-label={t("habit.deleteAria")}
-            onClick={() => actions.deleteHabit(habit)}
-          >
-            🗑
-          </button>
-        </div>
+        <HorizontalScroller className="pvhabits-habit-actions-scroller">
+          <div className="pvhabits-habit-actions">
+            {categories.length > 0 && (
+              <select
+                className="dropdown pvhabits-category-select"
+                aria-label={t("habit.categoryAria")}
+                value={habit.category}
+                onChange={(event) =>
+                  actions.moveHabit(habit, event.target.value)
+                }
+              >
+                <option value={NO_CATEGORY}>{t("tabs.uncategorized")}</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              className="pvhabits-btn pvhabits-btn-today"
+              onClick={() => toggleDay(today)}
+            >
+              {t("habit.today")}
+            </button>
+            <button
+              className="pvhabits-btn pvhabits-btn-icon"
+              aria-label={t("habit.renameAria")}
+              onClick={() => actions.renameHabit(habit)}
+            >
+              ✎
+            </button>
+            <button
+              className="pvhabits-btn pvhabits-btn-icon"
+              aria-label={t("habit.deleteAria")}
+              onClick={() => actions.deleteHabit(habit)}
+            >
+              🗑
+            </button>
+          </div>
+        </HorizontalScroller>
       </div>
       <ContributionGrid
         calendar={calendar}

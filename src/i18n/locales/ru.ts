@@ -60,6 +60,23 @@ export const ru: LocaleData = {
     "grid.tooltipDone": "Да",
     "grid.tooltipNotDone": "Нет",
 
+    // Categories
+    "tabs.all": "Все",
+    "tabs.uncategorized": "Без категории",
+    "tabs.empty": "В этой категории пока нет привычек.",
+    "tabs.addCategory": "Добавить категорию",
+    "tabs.deleteCategoryAria": "Удалить категорию",
+    "habit.categoryAria": "Категория",
+    "modal.category.title": "Новая категория",
+    "modal.category.nameLabel": "Название",
+    "modal.category.placeholder": "Например: Здоровье",
+    "modal.renameCategory.title": "Переименовать категорию",
+    "confirm.deleteCategory": "Удалить категорию «{name}»? Привычки останутся, но без категории.",
+    "notice.categoryExists": "Категория «{name}» уже существует",
+    "notice.moveHabitFailed": "Не удалось перенести привычку",
+    "notice.renameCategoryFailed": "Не удалось переименовать категорию",
+    "notice.deleteCategoryFailed": "Не удалось удалить категорию",
+
     // Settings
     "settings.csvPath.name": "Путь к CSV-файлу",
     "settings.csvPath.desc": "Расположение файла данных привычек внутри хранилища.",

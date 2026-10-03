@@ -1,13 +1,13 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { HabitNameForm } from "./HabitNameForm";
+import { NameForm } from "./NameForm";
 
 const renderForm = (initialName?: string) => {
   const onSubmit = vi.fn();
   const onCancel = vi.fn();
   render(
-    <HabitNameForm
+    <NameForm
       label="Название"
       submitLabel="Создать"
       initialName={initialName}
@@ -22,7 +22,7 @@ const renderForm = (initialName?: string) => {
   };
 };
 
-describe("HabitNameForm", () => {
+describe("NameForm", () => {
   it("submits the trimmed name on Enter", async () => {
     const { onSubmit, input } = renderForm();
     await userEvent.type(input, "  Бегать {Enter}");

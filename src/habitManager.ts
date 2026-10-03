@@ -1,20 +1,10 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
-import { parseCsv, toCsv, generateId, formatDate } from "./csv";
-
-export interface HabitRecord {
-  id: string;
-  name: string;
-  created: string; // YYYY-MM-DD
-}
-
-export interface HabitStatusMap {
-  [habitId: string]: Record<string, number>;
-}
-
-export interface HabitData {
-  habits: HabitRecord[];
-  statuses: HabitStatusMap;
-}
+import { generateId, formatDate } from "./csv";
+import {
+  parseHabitData,
+  serializeHabitData,
+  type HabitData,
+} from "./habitData";
 
 export class HabitManager {
   app: App;
@@ -61,87 +51,12 @@ export class HabitManager {
     }
   }
 
-  async readRaw(): Promise<string> {
-    const file = await this.ensureFile();
-    return this.app.vault.read(file);
-  }
-
-  async writeRaw(text: string): Promise<void> {
-    const file = await this.ensureFile();
-    await this.app.vault.modify(file, text);
-  }
-
   async loadHabits(): Promise<HabitData> {
-    const text = await this.readRaw();
-    const rows = parseCsv(text);
-
-    const habitsById = new Map<string, HabitRecord>();
-    const statuses: HabitStatusMap = {};
-
-    for (const row of rows) {
-      // Skip blank lines / malformed rows.
-      if (row.length === 0) continue;
-      if (row.length < 4) continue;
-
-      const [id, name, date, statusStr, created] = [
-        row[0],
-        row[1],
-        row[2],
-        row[3],
-        row[4] || formatDate(),
-      ];
-
-      if (!id || !date || !name) continue;
-
-      const status = statusStr === "1" ? 1 : 0;
-
-      if (!habitsById.has(id)) {
-        habitsById.set(id, { id, name, created });
-      } else {
-        // Keep the earliest creation date and latest name.
-        const existing = habitsById.get(id)!;
-        if (created < existing.created) {
-          existing.created = created;
-        }
-        if (name) existing.name = name;
-      }
-
-      if (!statuses[id]) {
-        statuses[id] = {};
-      }
-      statuses[id][date] = status;
-    }
-
-    const habits = Array.from(habitsById.values());
-
-    return { habits, statuses };
+    const file = await this.ensureFile();
+    return parseHabitData(await this.app.vault.cachedRead(file));
   }
 
-  async saveAll(data: HabitData): Promise<void> {
-    const rows: string[][] = [];
-
-    for (const habit of data.habits) {
-      const dayMap = data.statuses[habit.id] || {};
-      const dates = Object.keys(dayMap).sort();
-      if (dates.length === 0) {
-        rows.push([habit.id, habit.name, habit.created, "0", habit.created]);
-        continue;
-      }
-      for (const date of dates) {
-        rows.push([
-          habit.id,
-          habit.name,
-          date,
-          String(dayMap[date]),
-          habit.created,
-        ]);
-      }
-    }
-
-    await this.writeRaw(toCsv(rows));
-  }
-
-  async addHabit(name: string): Promise<string> {
+  async addHabit(name: string, category: string): Promise<string> {
     const trimmed = name.trim();
     if (!trimmed) {
       throw new Error("Habit name cannot be empty");
@@ -149,63 +64,86 @@ export class HabitManager {
 
     const id = generateId(trimmed);
     const created = formatDate();
-
-    const data = await this.loadHabits();
-    data.habits.push({ id, name: trimmed, created });
-    if (!data.statuses[id]) {
-      data.statuses[id] = {};
-    }
-    // Initial creation row (status 0 for the creation day).
-    data.statuses[id][created] = 0;
-
-    await this.saveAll(data);
+    await this.updateHabits((data) => {
+      data.habits.push({ id, name: trimmed, created, category });
+      // Initial creation row (status 0 for the creation day).
+      data.statuses[id] = { [created]: 0 };
+      return true;
+    });
     return id;
   }
 
-  async saveHabitStatus(
-    habitId: string,
-    date: string,
-    status: number,
-  ): Promise<void> {
-    const data = await this.loadHabits();
-    const habit = data.habits.find((h) => h.id === habitId);
-    if (!habit) {
-      throw new Error(`Habit not found: ${habitId}`);
-    }
-    if (!data.statuses[habitId]) {
-      data.statuses[habitId] = {};
-    }
-    data.statuses[habitId][date] = status ? 1 : 0;
-    await this.saveAll(data);
-  }
-
   async toggleHabitStatus(habitId: string, date: string): Promise<number> {
-    const data = await this.loadHabits();
-    const current = data.statuses[habitId]?.[date] ?? 0;
-    const next = current ? 0 : 1;
-    await this.saveHabitStatus(habitId, date, next);
-    return next;
+    const data = await this.updateHabits((data) => {
+      if (!data.habits.some((h) => h.id === habitId)) {
+        throw new Error(`Habit not found: ${habitId}`);
+      }
+      const dayMap = (data.statuses[habitId] ??= {});
+      dayMap[date] = dayMap[date] ? 0 : 1;
+      return true;
+    });
+    return data.statuses[habitId]?.[date] ?? 0;
   }
 
   async deleteHabit(habitId: string): Promise<void> {
-    const data = await this.loadHabits();
-    data.habits = data.habits.filter((h) => h.id !== habitId);
-    delete data.statuses[habitId];
-    await this.saveAll(data);
+    await this.updateHabits((data) => {
+      data.habits = data.habits.filter((h) => h.id !== habitId);
+      delete data.statuses[habitId];
+      return true;
+    });
   }
 
   async renameHabit(habitId: string, newName: string): Promise<void> {
     const trimmed = newName.trim();
     if (!trimmed) return;
-    const data = await this.loadHabits();
-    const habit = data.habits.find((h) => h.id === habitId);
-    if (!habit) return;
-    habit.name = trimmed;
-    await this.saveAll(data);
+    await this.updateHabits((data) => {
+      const habit = data.habits.find((h) => h.id === habitId);
+      if (!habit) return false;
+      habit.name = trimmed;
+      return true;
+    });
   }
 
-  async getHabitNames(): Promise<string[]> {
-    const { habits } = await this.loadHabits();
-    return habits.map((h) => h.name);
+  async setHabitCategory(
+    habitId: string,
+    category: string,
+  ): Promise<HabitData> {
+    return this.updateHabits((data) => {
+      const habit = data.habits.find((h) => h.id === habitId);
+      if (!habit) {
+        throw new Error(`Habit not found: ${habitId}`);
+      }
+      if (habit.category === category) return false;
+      habit.category = category;
+      return true;
+    });
+  }
+
+  async replaceCategory(from: string, to: string): Promise<HabitData> {
+    return this.updateHabits((data) => {
+      let changed = false;
+      for (const habit of data.habits) {
+        if (habit.category === from) {
+          habit.category = to;
+          changed = true;
+        }
+      }
+      return changed;
+    });
+  }
+
+  // Vault.process reads and writes atomically, so a sync landing between the
+  // read and the write cannot be overwritten; returning the text unchanged
+  // makes it skip the write entirely.
+  private async updateHabits(
+    mutate: (data: HabitData) => boolean,
+  ): Promise<HabitData> {
+    const file = await this.ensureFile();
+    let data: HabitData = { habits: [], statuses: {} };
+    await this.app.vault.process(file, (text) => {
+      data = parseHabitData(text);
+      return mutate(data) ? serializeHabitData(data) : text;
+    });
+    return data;
   }
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Calendar } from "../calendar";
 import {
   formatDisplayDate,
@@ -31,7 +32,9 @@ export const ContributionGrid = ({
               <span
                 key={index}
                 className="pvhabits-month-label"
-                style={{ flexGrow: span.weeks }}
+                style={
+                  { "--pvhabits-month-weeks": span.weeks } as CSSProperties
+                }
               >
                 {monthLabels[span.month]}
               </span>

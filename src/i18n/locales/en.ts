@@ -60,6 +60,23 @@ export const en: LocaleData = {
     "grid.tooltipDone": "Yes",
     "grid.tooltipNotDone": "No",
 
+    // Categories
+    "tabs.all": "All",
+    "tabs.uncategorized": "Uncategorized",
+    "tabs.empty": "No habits in this category yet.",
+    "tabs.addCategory": "Add category",
+    "tabs.deleteCategoryAria": "Delete category",
+    "habit.categoryAria": "Category",
+    "modal.category.title": "New category",
+    "modal.category.nameLabel": "Name",
+    "modal.category.placeholder": "e.g. Health",
+    "modal.renameCategory.title": "Rename category",
+    "confirm.deleteCategory": "Delete category \"{name}\"? Its habits will be kept without a category.",
+    "notice.categoryExists": "Category \"{name}\" already exists",
+    "notice.moveHabitFailed": "Failed to move habit",
+    "notice.renameCategoryFailed": "Failed to rename category",
+    "notice.deleteCategoryFailed": "Failed to delete category",
+
     // Settings
     "settings.csvPath.name": "CSV file path",
     "settings.csvPath.desc": "Location of the habit data file inside the vault.",
