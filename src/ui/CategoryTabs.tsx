@@ -24,11 +24,12 @@ export const CategoryTabs = ({
     <div className="pvhabits-tabs" role="tablist">
       {tabs.map((tab) => {
         const active = tabKey(tab) === tabKey(activeTab);
+        const editable = active && tab.type === "category";
         return (
           <div
             key={tabKey(tab)}
             role="presentation"
-            className={`pvhabits-tab${active ? " is-active" : ""}`}
+            className={`pvhabits-tab${active ? " is-active" : ""}${editable ? " has-actions" : ""}`}
           >
             <Pressable
               role="tab"
@@ -38,7 +39,7 @@ export const CategoryTabs = ({
             >
               {tabLabel(tab)}
             </Pressable>
-            {active && tab.type === "category" && (
+            {editable && (
               <>
                 <Pressable
                   role="button"
