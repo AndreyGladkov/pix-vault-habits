@@ -1,7 +1,7 @@
 {
 	"id": "pix-vault-habits",
 	"name": "Pix Vault Habits",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"minAppVersion": "1.13.0",
 	"description": "Habit Tracker with GitHub-Style Visualizations Contributions.",
 	"author": "Andrei Gladkov",

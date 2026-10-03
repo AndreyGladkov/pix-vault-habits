@@ -1,3 +1,9 @@
+## 1.2.1 (2026-10-03)
+
+### Fix
+
+- pass Obsidian plugin review by moving to React 18 and dropping :has
+
 ## 1.2.0 (2026-10-03)
 
 ### Feat
