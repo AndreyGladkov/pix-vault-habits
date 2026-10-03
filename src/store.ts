@@ -1,4 +1,5 @@
-import type { HabitData } from "./habitManager";
+import { listCategories } from "./categories";
+import type { HabitData } from "./habitData";
 
 export interface DisplaySettings {
   numDays: number;
@@ -11,8 +12,9 @@ type HabitsState =
   | { status: "error" }
   | { status: "ready"; data: HabitData };
 
-interface TrackerSnapshot {
+export interface TrackerSnapshot {
   settings: DisplaySettings;
+  categories: string[];
   habits: HabitsState;
 }
 
@@ -24,8 +26,9 @@ export class TrackerStore {
   constructor(
     private readonly loadHabits: () => Promise<HabitData>,
     settings: DisplaySettings,
+    categories: string[],
   ) {
-    this.snapshot = { settings, habits: { status: "loading" } };
+    this.snapshot = { settings, categories, habits: { status: "loading" } };
   }
 
   subscribe = (listener: () => void): (() => void) => {
@@ -54,8 +57,31 @@ export class TrackerStore {
     this.update({ settings });
   }
 
+  applyChanges({
+    categories,
+    data,
+  }: {
+    categories?: string[];
+    data?: HabitData;
+  }): void {
+    if (data) this.generation++;
+    this.update({
+      ...(categories && { categories }),
+      ...(data && { habits: { status: "ready", data } }),
+    });
+  }
+
   private update(patch: Partial<TrackerSnapshot>): void {
     this.snapshot = { ...this.snapshot, ...patch };
     this.listeners.forEach((listener) => listener());
   }
 }
+
+export const selectCategories = ({
+  categories,
+  habits,
+}: TrackerSnapshot): string[] =>
+  listCategories(
+    categories,
+    habits.status === "ready" ? habits.data.habits : [],
+  );

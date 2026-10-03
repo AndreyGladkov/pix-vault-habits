@@ -1,9 +1,9 @@
-import { App, FuzzySuggestModal, Modal } from "obsidian";
+import { App, ConfirmationModal, FuzzySuggestModal, Modal } from "obsidian";
 import type { ReactNode } from "react";
 import type { Root } from "react-dom/client";
-import type { HabitRecord } from "../habitManager";
+import type { HabitRecord } from "../habitData";
 import { t } from "../i18n";
-import { HabitNameForm, type HabitNameFormProps } from "./HabitNameForm";
+import { NameForm, type NameFormProps } from "./NameForm";
 import { mountReactRoot } from "./reactRoot";
 
 class ReactModal extends Modal {
@@ -13,6 +13,7 @@ class ReactModal extends Modal {
     app: App,
     title: string,
     private readonly renderContent: (close: () => void) => ReactNode,
+    private readonly onClosed: () => void,
   ) {
     super(app);
     this.setTitle(title);
@@ -28,56 +29,86 @@ class ReactModal extends Modal {
   onClose() {
     this.root?.unmount();
     this.root = null;
+    this.onClosed();
   }
 }
 
-type OnSubmitName = (name: string) => void | Promise<void>;
-
-type HabitNameModalOptions = Omit<
-  HabitNameFormProps,
-  "onSubmit" | "onCancel"
-> & {
+type NameModalOptions = Omit<NameFormProps, "onSubmit" | "onCancel"> & {
   title: string;
-  onSubmit: OnSubmitName;
 };
 
-export const openAddHabitModal = (app: App, onSubmit: OnSubmitName) =>
-  openHabitNameModal(app, {
+export const openAddHabitModal = (app: App) =>
+  openNameModal(app, {
     title: t("modal.add.title"),
     label: t("modal.add.nameLabel"),
     description: t("modal.add.nameDesc"),
     placeholder: t("modal.add.placeholder"),
     submitLabel: t("modal.create"),
-    onSubmit,
   });
 
-export const openRenameHabitModal = (
-  app: App,
-  currentName: string,
-  onSubmit: OnSubmitName,
-) =>
-  openHabitNameModal(app, {
+export const openRenameHabitModal = (app: App, currentName: string) =>
+  openNameModal(app, {
     title: t("modal.rename.title"),
     label: t("modal.rename.nameLabel"),
     submitLabel: t("modal.save"),
     initialName: currentName,
-    onSubmit,
   });
 
-const openHabitNameModal = (
+export const openAddCategoryModal = (app: App) =>
+  openNameModal(app, {
+    title: t("modal.category.title"),
+    label: t("modal.category.nameLabel"),
+    placeholder: t("modal.category.placeholder"),
+    submitLabel: t("modal.create"),
+  });
+
+export const openRenameCategoryModal = (app: App, currentName: string) =>
+  openNameModal(app, {
+    title: t("modal.renameCategory.title"),
+    label: t("modal.category.nameLabel"),
+    submitLabel: t("modal.save"),
+    initialName: currentName,
+  });
+
+const openNameModal = (
   app: App,
-  { title, onSubmit, ...formProps }: HabitNameModalOptions,
-) =>
-  new ReactModal(app, title, (close) => (
-    <HabitNameForm
-      {...formProps}
-      onCancel={close}
-      onSubmit={(name) => {
-        close();
-        void onSubmit(name);
-      }}
-    />
-  )).open();
+  { title, ...formProps }: NameModalOptions,
+): Promise<string | null> =>
+  new Promise((resolve) => {
+    new ReactModal(
+      app,
+      title,
+      (close) => (
+        <NameForm
+          {...formProps}
+          onCancel={close}
+          onSubmit={(name) => {
+            resolve(name);
+            close();
+          }}
+        />
+      ),
+      () => resolve(null),
+    ).open();
+  });
+
+export const openConfirmDeleteModal = (
+  app: App,
+  title: string,
+  onConfirm: () => Promise<void>,
+) => {
+  const modal = new ConfirmationModal(app);
+  modal.setTitle(title);
+  modal.addCancelButton(t("modal.cancel"));
+  modal.addButton((btn) => {
+    btn.setButtonText(t("confirm.delete"));
+    btn.setDestructive().setCta();
+    btn.onClick(() => {
+      void onConfirm();
+    });
+  });
+  modal.open();
+};
 
 export class HabitPickerModal extends FuzzySuggestModal<HabitRecord> {
   constructor(

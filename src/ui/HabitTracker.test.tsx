@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { HabitData } from "../habitManager";
+import type { HabitData } from "../habitData";
 import { setLocale } from "../i18n";
 import { TrackerStore, type DisplaySettings } from "../store";
 import { HabitTracker, type TrackerActions } from "./HabitTracker";
@@ -11,7 +11,12 @@ const settings: DisplaySettings = {
   doneColor: "#40c463",
   emptyColor: "gray",
 };
-const read = { id: "read", name: "Читать", created: "2026-09-01" };
+const read = {
+  id: "read",
+  name: "Читать",
+  created: "2026-09-01",
+  category: "",
+};
 const habitData: HabitData = {
   habits: [read],
   statuses: { read: { "2026-10-01": 1, "2026-10-02": 1 } },
@@ -23,10 +28,21 @@ const createActions = (): TrackerActions => ({
   toggleDay: vi.fn(),
   renameHabit: vi.fn(),
   deleteHabit: vi.fn(),
+  moveHabit: vi.fn(),
+  addCategory: vi.fn(() => Promise.resolve(null)),
+  renameCategory: vi.fn(() => Promise.resolve(null)),
+  deleteCategory: vi.fn(),
 });
 
-const renderLoaded = async (data: HabitData, actions = createActions()) => {
-  const store = new TrackerStore(() => Promise.resolve(data), settings);
+const renderLoaded = async (
+  data: HabitData,
+  { actions = createActions(), categories = [] as string[] } = {},
+) => {
+  const store = new TrackerStore(
+    () => Promise.resolve(data),
+    settings,
+    categories,
+  );
   await store.reload();
   render(<HabitTracker store={store} actions={actions} />);
   return { store, actions };
@@ -44,7 +60,11 @@ describe("HabitTracker", () => {
   });
 
   it("renders habits once the store has loaded", async () => {
-    const store = new TrackerStore(() => Promise.resolve(habitData), settings);
+    const store = new TrackerStore(
+      () => Promise.resolve(habitData),
+      settings,
+      [],
+    );
     render(<HabitTracker store={store} actions={createActions()} />);
     expect(screen.queryByText("Читать")).toBeNull();
 
@@ -62,6 +82,7 @@ describe("HabitTracker", () => {
     const failing = new TrackerStore(
       () => Promise.reject(new Error("boom")),
       settings,
+      [],
     );
     await failing.reload();
     render(<HabitTracker store={failing} actions={createActions()} />);
@@ -75,13 +96,13 @@ describe("HabitTracker", () => {
     const { actions } = await renderLoaded(habitData);
 
     await user.click(screen.getByText("Добавить привычку"));
-    await user.click(screen.getByText("Обновить"));
+    await user.click(screen.getByLabelText("Обновить"));
     await user.click(screen.getByText("Сегодня"));
     await user.click(screen.getByLabelText("Дата: 01.10.2026, Выполнено: Да"));
     await user.click(screen.getByLabelText("Переименовать"));
     await user.click(screen.getByLabelText("Удалить"));
 
-    expect(actions.addHabit).toHaveBeenCalled();
+    expect(actions.addHabit).toHaveBeenCalledWith("");
     expect(actions.refresh).toHaveBeenCalled();
     expect(actions.toggleDay).toHaveBeenNthCalledWith(1, "read", "2026-10-03");
     expect(actions.toggleDay).toHaveBeenNthCalledWith(2, "read", "2026-10-01");
@@ -114,5 +135,154 @@ describe("HabitTracker", () => {
     expect(screen.getByText("Today")).toBeTruthy();
     expect(screen.getByText("🔥 2 days · ✅ 2")).toBeTruthy();
     expect(screen.getAllByRole("button", { pressed: true })).toHaveLength(2);
+  });
+
+  describe("categories", () => {
+    const run = {
+      id: "run",
+      name: "Бегать",
+      created: "2026-09-01",
+      category: "Спорт",
+    };
+    const categorized: HabitData = { habits: [run, read], statuses: {} };
+
+    it("shows tabs and filters habits by the selected category", async () => {
+      const user = userEvent.setup();
+      await renderLoaded(categorized, { categories: ["Спорт", "Работа"] });
+
+      expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+        "Все",
+        "Спорт",
+        "Работа",
+        "Без категории",
+      ]);
+      expect(screen.getByText("Бегать")).toBeTruthy();
+      expect(screen.getByText("Читать")).toBeTruthy();
+
+      await user.click(screen.getByRole("tab", { name: "Спорт" }));
+      expect(screen.getByText("Бегать")).toBeTruthy();
+      expect(screen.queryByText("Читать")).toBeNull();
+
+      await user.click(screen.getByRole("tab", { name: "Без категории" }));
+      expect(screen.queryByText("Бегать")).toBeNull();
+      expect(screen.getByText("Читать")).toBeTruthy();
+
+      await user.click(screen.getByRole("tab", { name: "Работа" }));
+      expect(
+        screen.getByText("В этой категории пока нет привычек."),
+      ).toBeTruthy();
+    });
+
+    it("adds new habits to the active category", async () => {
+      const user = userEvent.setup();
+      const { actions } = await renderLoaded(categorized, {
+        categories: ["Спорт"],
+      });
+
+      await user.click(screen.getByRole("tab", { name: "Спорт" }));
+      await user.click(screen.getByText("Добавить привычку"));
+
+      expect(actions.addHabit).toHaveBeenCalledWith("Спорт");
+    });
+
+    it("moves a habit to another category", async () => {
+      const user = userEvent.setup();
+      const { actions } = await renderLoaded(categorized, {
+        categories: ["Спорт", "Работа"],
+      });
+
+      const [runSelect] =
+        screen.getAllByLabelText<HTMLSelectElement>("Категория");
+      expect(runSelect!.value).toBe("Спорт");
+      await user.selectOptions(runSelect!, "Работа");
+
+      expect(actions.moveHabit).toHaveBeenCalledWith(run, "Работа");
+    });
+
+    it("hides the category selector until a category exists", async () => {
+      await renderLoaded(habitData);
+      expect(screen.queryByLabelText("Категория")).toBeNull();
+      expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+        "Все",
+      ]);
+    });
+
+    it("adds categories and deletes only the active real category", async () => {
+      const user = userEvent.setup();
+      const { actions } = await renderLoaded(categorized, {
+        categories: ["Спорт"],
+      });
+
+      await user.click(screen.getByLabelText("Добавить категорию"));
+      expect(actions.addCategory).toHaveBeenCalled();
+
+      expect(screen.queryByLabelText("Удалить категорию")).toBeNull();
+      await user.click(screen.getByRole("tab", { name: "Без категории" }));
+      expect(screen.queryByLabelText("Удалить категорию")).toBeNull();
+
+      await user.click(screen.getByRole("tab", { name: "Спорт" }));
+      await user.click(screen.getByLabelText("Удалить категорию"));
+      expect(actions.deleteCategory).toHaveBeenCalledWith("Спорт");
+    });
+
+    it("renames the active category and keeps it selected", async () => {
+      const user = userEvent.setup();
+      const actions = createActions();
+      const { store } = await renderLoaded(categorized, {
+        actions,
+        categories: ["Спорт"],
+      });
+      vi.mocked(actions.renameCategory).mockImplementation(async () => {
+        store.applyChanges({
+          categories: ["Бег"],
+          data: { habits: [{ ...run, category: "Бег" }, read], statuses: {} },
+        });
+        return "Бег";
+      });
+
+      expect(screen.queryByLabelText("Переименовать категорию")).toBeNull();
+      await user.click(screen.getByRole("tab", { name: "Спорт" }));
+      await user.click(screen.getByLabelText("Переименовать категорию"));
+
+      expect(actions.renameCategory).toHaveBeenCalledWith("Спорт");
+      expect(screen.getByRole("tab", { selected: true }).textContent).toBe(
+        "Бег",
+      );
+      expect(screen.getByText("Бегать")).toBeTruthy();
+    });
+
+    it("selects a newly added category", async () => {
+      const user = userEvent.setup();
+      const actions = createActions();
+      const { store } = await renderLoaded(categorized, {
+        actions,
+        categories: ["Спорт"],
+      });
+      vi.mocked(actions.addCategory).mockImplementation(async () => {
+        store.applyChanges({ categories: ["Спорт", "Работа"] });
+        return "Работа";
+      });
+
+      await user.click(screen.getByLabelText("Добавить категорию"));
+
+      expect(screen.getByRole("tab", { selected: true }).textContent).toBe(
+        "Работа",
+      );
+    });
+
+    it("falls back to all habits when the active category disappears", async () => {
+      const user = userEvent.setup();
+      const { store } = await renderLoaded(categorized, {
+        categories: ["Спорт", "Работа"],
+      });
+
+      await user.click(screen.getByRole("tab", { name: "Работа" }));
+      act(() => store.applyChanges({ categories: ["Спорт"] }));
+
+      expect(screen.getByRole("tab", { selected: true }).textContent).toBe(
+        "Все",
+      );
+      expect(screen.getByText("Читать")).toBeTruthy();
+    });
   });
 });

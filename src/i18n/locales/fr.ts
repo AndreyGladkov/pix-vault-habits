@@ -60,6 +60,23 @@ export const fr: LocaleData = {
     "grid.tooltipDone": "Oui",
     "grid.tooltipNotDone": "Non",
 
+    // Categories
+    "tabs.all": "Toutes",
+    "tabs.uncategorized": "Sans catégorie",
+    "tabs.empty": "Aucune habitude dans cette catégorie pour le moment.",
+    "tabs.addCategory": "Ajouter une catégorie",
+    "tabs.deleteCategoryAria": "Supprimer la catégorie",
+    "habit.categoryAria": "Catégorie",
+    "modal.category.title": "Nouvelle catégorie",
+    "modal.category.nameLabel": "Nom",
+    "modal.category.placeholder": "p. ex. Santé",
+    "modal.renameCategory.title": "Renommer la catégorie",
+    "confirm.deleteCategory": "Supprimer la catégorie « {name} » ? Ses habitudes seront conservées sans catégorie.",
+    "notice.categoryExists": "La catégorie « {name} » existe déjà",
+    "notice.moveHabitFailed": "Impossible de déplacer l'habitude",
+    "notice.renameCategoryFailed": "Impossible de renommer la catégorie",
+    "notice.deleteCategoryFailed": "Impossible de supprimer la catégorie",
+
     // Settings
     "settings.csvPath.name": "Chemin du fichier CSV",
     "settings.csvPath.desc": "Emplacement du fichier de données des habitudes dans le coffre.",

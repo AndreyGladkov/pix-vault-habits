@@ -1,7 +1,7 @@
 import { useState, type SyntheticEvent } from "react";
 import { t } from "../i18n";
 
-export interface HabitNameFormProps {
+export interface NameFormProps {
   label: string;
   description?: string;
   placeholder?: string;
@@ -11,7 +11,7 @@ export interface HabitNameFormProps {
   onCancel: () => void;
 }
 
-export const HabitNameForm = ({
+export const NameForm = ({
   label,
   description,
   placeholder,
@@ -19,7 +19,7 @@ export const HabitNameForm = ({
   initialName = "",
   onSubmit,
   onCancel,
-}: HabitNameFormProps) => {
+}: NameFormProps) => {
   const [name, setName] = useState(initialName);
 
   const handleSubmit = (event: SyntheticEvent) => {
