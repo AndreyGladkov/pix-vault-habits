@@ -18,7 +18,7 @@ pix-vault-habits/
 │   │   ├── index.ts     # t(), setLocale(), date formatting, day/month labels
 │   │   ├── types.ts     # Locale / LocaleData types
 │   │   └── locales/     # en.ts, ru.ts, fr.ts, de.ts
-│   └── ui/              # React 19 components (grid, habit card, modals)
+│   └── ui/              # React 18 components (grid, habit card, modals)
 ├── styles.css           # Grid and interface styles
 ├── manifest.json
 ├── package.json
@@ -44,7 +44,7 @@ pix-vault-habits/
 
 Copy the `pix-vault-habits` folder into your Obsidian plugins directory (`.obsidian/plugins/`) and enable the plugin in the settings. To rebuild after making changes, run `npm run build` in the project directory.
 
-To start dev mode with auto-rebuild: `npm run dev`. Run tests with `npm test`.
+To start dev mode with auto-rebuild: `npm run dev`. Run tests with `npm test`, or lint, type checks and tests together with `npm run check`.
 
 # Плагин **Pix Vault Habits** для Obsidian.
 
@@ -66,7 +66,7 @@ pix-vault-habits/
 │   │   ├── index.ts     # t(), setLocale(), формат дат, подписи дней/месяцев
 │   │   ├── types.ts     # Типы Locale / LocaleData
 │   │   └── locales/     # en.ts, ru.ts, fr.ts, de.ts
-│   └── ui/              # React 19 компоненты (сетка, карточка привычки, модалки)
+│   └── ui/              # React 18 компоненты (сетка, карточка привычки, модалки)
 ├── styles.css           # Стили сетки и интерфейса
 ├── manifest.json
 ├── package.json
@@ -92,4 +92,4 @@ pix-vault-habits/
 
 Скопируйте папку `pix-vault-habits` в каталог плагинов Obsidian (`.obsidian/plugins/`) и включите плагин в настройках. Для пересборки после изменений выполните `npm run build` в каталоге проекта.
 
-Для запуска dev-режима с автопересборкой: `npm run dev`. Тесты: `npm test`.
+Для запуска dev-режима с автопересборкой: `npm run dev`. Тесты: `npm test`, линтер, проверка типов и тесты вместе: `npm run check`.

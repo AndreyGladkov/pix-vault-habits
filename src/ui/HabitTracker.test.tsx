@@ -248,7 +248,12 @@ describe("HabitTracker", () => {
       await user.click(screen.getByRole("tab", { name: "Без категории" }));
       expect(screen.queryByLabelText("Удалить категорию")).toBeNull();
 
+      const tabWithActions = () =>
+        document.querySelector(".pvhabits-tab.has-actions")?.textContent;
+      expect(tabWithActions()).toBeUndefined();
+
       await user.click(screen.getByRole("tab", { name: "Спорт" }));
+      expect(tabWithActions()).toBe("Спорт✎×");
       await user.click(screen.getByLabelText("Удалить категорию"));
       expect(actions.deleteCategory).toHaveBeenCalledWith("Спорт");
     });
