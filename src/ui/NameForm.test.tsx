@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setLocale } from "../i18n";
 import { NameForm } from "./NameForm";
 
 const renderForm = (initialName?: string) => {
@@ -23,6 +24,8 @@ const renderForm = (initialName?: string) => {
 };
 
 describe("NameForm", () => {
+  beforeEach(() => setLocale("ru"));
+
   it("submits the trimmed name on Enter", async () => {
     const { onSubmit, input } = renderForm();
     await userEvent.type(input, "  Бегать {Enter}");

@@ -82,6 +82,22 @@ describe("useHorizontalOverflow", () => {
     expect(wheel.defaultPrevented).toBe(true);
   });
 
+  it("lets the wheel scroll the page once the strip reaches that end", () => {
+    const strip = renderStrip({ scrollWidth: 500, clientWidth: 200 });
+    strip.scrollLeft = 300;
+
+    const down = new WheelEvent("wheel", { deltaY: 40, cancelable: true });
+    strip.dispatchEvent(down);
+    expect(strip.scrollLeft).toBe(300);
+    expect(down.defaultPrevented).toBe(false);
+
+    strip.scrollLeft = 0;
+    const up = new WheelEvent("wheel", { deltaY: -40, cancelable: true });
+    strip.dispatchEvent(up);
+    expect(strip.scrollLeft).toBe(0);
+    expect(up.defaultPrevented).toBe(false);
+  });
+
   it("leaves the wheel alone when the content fits", () => {
     const strip = renderStrip({ scrollWidth: 200, clientWidth: 200 });
     const wheel = new WheelEvent("wheel", { deltaY: 40, cancelable: true });

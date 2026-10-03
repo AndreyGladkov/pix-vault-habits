@@ -35,6 +35,8 @@ pix-vault-habits/
 - **GitHub-style grid**: for each habit — a header, statistics (streak 🔥 + total ✅), month labels, week columns (Mon–Sun), 12×12 px squares.
 - **Interaction**: clicking a square toggles the status (works for both today and past days), today is highlighted with an outline, tooltip shows "Date: DD.MM.YYYY, Completed: Yes/No", horizontal scrolling, "Today", "Rename", and "Delete" buttons.
 - **Categories**: habits are grouped into tabs ("All", each category, "Uncategorized"). Tabs scroll horizontally when they do not fit. Add a category with "+", rename the active one with "✎", delete it with "×" (its habits stay, uncategorized), move a habit with the category dropdown on its card. A habit added while a category tab is open goes into that category.
+
+  > **Update on every device.** Categories are stored in a new sixth CSV column, available since 1.2.0. Versions up to 1.1.5 do not know about it and drop it on any change (marking a day, adding, renaming or deleting a habit), so every habit becomes uncategorized. If your vault is synced across several devices, update the plugin on all of them before assigning categories.
 - **Settings**: CSV path, number of days (30/90/365), completed color, uncompleted color.
 - **Themes**: colors adapt through Obsidian CSS variables (light/dark).
 
@@ -81,6 +83,8 @@ pix-vault-habits/
 - **Сетка GitHub-style**: для каждой привычки — заголовок, статистика (streak 🔥 + всего ✅), подписи месяцев, колонки недель (Пн–Вс), квадраты 12×12 px.
 - **Взаимодействие**: клик по квадрату переключает статус (и сегодня, и прошлые дни), сегодня подсвечен рамкой, tooltip «Дата: ДД.ММ.ГГГГ, Выполнено: Да/Нет», горизонтальный скролл, кнопки «Сегодня», «Переименовать», «Удалить».
 - **Категории**: привычки сгруппированы по табам («Все», каждая категория, «Без категории»). Если табы не помещаются, они прокручиваются по горизонтали. Категория добавляется кнопкой «+», активная переименовывается «✎» и удаляется «×» (привычки остаются без категории), привычка переносится выпадающим списком категории в её карточке. Привычка, добавленная на табе категории, попадает в эту категорию.
+
+  > **Обновите плагин на всех устройствах.** Категории хранятся в новой, шестой колонке CSV (начиная с версии 1.2.0). Версии до 1.1.5 включительно о ней не знают и при любом изменении (отметка дня, добавление, переименование или удаление привычки) перезаписывают файл без неё — все привычки остаются без категории. Если хранилище синхронизируется между несколькими устройствами, обновите плагин на каждом из них, прежде чем раскладывать привычки по категориям.
 - **Настройки**: путь к CSV, количество дней (30/90/365), цвет выполненного, цвет невыполненного.
 - **Темы**: цвета адаптируются через CSS-переменные Obsidian (светлая/тёмная).
 

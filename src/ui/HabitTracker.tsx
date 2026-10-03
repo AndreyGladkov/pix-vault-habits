@@ -13,7 +13,6 @@ import {
   tabKey,
   type CategoryTab,
 } from "../categories";
-import { formatDate } from "../csv";
 import type { HabitRecord, HabitStatusMap } from "../habitData";
 import { t } from "../i18n";
 import {
@@ -24,6 +23,7 @@ import {
 import { CategoryTabs } from "./CategoryTabs";
 import { HabitCard } from "./HabitCard";
 import { RefreshIcon } from "./RefreshIcon";
+import { useToday } from "./useToday";
 
 export interface TrackerActions {
   addHabit: (category: string) => void;
@@ -51,8 +51,11 @@ export const HabitTracker = ({ store, actions }: HabitTrackerProps) => {
   const allHabits = data?.habits ?? [];
   const categories = selectCategories(snapshot);
   const tabs = buildTabs(categories, allHabits);
-  const activeTab =
-    tabs.find((tab) => tabKey(tab) === tabKey(selectedTab)) ?? ALL_TAB;
+  const selectionShown = tabs.some(
+    (tab) => tabKey(tab) === tabKey(selectedTab),
+  );
+  if (data && !selectionShown) setSelectedTab(ALL_TAB);
+  const activeTab = selectionShown ? selectedTab : ALL_TAB;
 
   const selectCategory = (name: string | null) => {
     if (name !== null) setSelectedTab({ type: "category", name });
@@ -134,7 +137,7 @@ const HabitList = ({
   settings,
   actions,
 }: HabitListProps) => {
-  const today = formatDate();
+  const today = useToday();
   const { numDays } = settings;
   const calendar = useMemo(
     () => buildCalendar(today, numDays),

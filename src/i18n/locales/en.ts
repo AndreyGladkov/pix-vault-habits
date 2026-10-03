@@ -76,6 +76,7 @@ export const en: LocaleData = {
     "notice.moveHabitFailed": "Failed to move habit",
     "notice.renameCategoryFailed": "Failed to rename category",
     "notice.deleteCategoryFailed": "Failed to delete category",
+    "notice.saveCategoriesFailed": "Failed to save categories",
 
     // Settings
     "settings.csvPath.name": "CSV file path",

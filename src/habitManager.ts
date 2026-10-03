@@ -52,29 +52,31 @@ export class HabitManager {
   }
 
   async loadHabits(): Promise<HabitData> {
-    const file = await this.ensureFile();
-    return parseHabitData(await this.app.vault.cachedRead(file));
+    const file = this.app.vault.getAbstractFileByPath(this.filePath);
+    if (!(file instanceof TFile)) return { habits: [], statuses: {} };
+    return parseHabitData(await this.app.vault.read(file));
   }
 
-  async addHabit(name: string, category: string): Promise<string> {
+  async addHabit(name: string, category: string): Promise<HabitData> {
     const trimmed = name.trim();
     if (!trimmed) {
       throw new Error("Habit name cannot be empty");
     }
 
-    const id = generateId(trimmed);
-    const created = formatDate();
-    await this.updateHabits((data) => {
-      data.habits.push({ id, name: trimmed, created, category });
-      // Initial creation row (status 0 for the creation day).
-      data.statuses[id] = { [created]: 0 };
+    const habit = {
+      id: generateId(trimmed),
+      name: trimmed,
+      created: formatDate(),
+      category,
+    };
+    return this.updateHabits((data) => {
+      data.habits.push(habit);
       return true;
     });
-    return id;
   }
 
-  async toggleHabitStatus(habitId: string, date: string): Promise<number> {
-    const data = await this.updateHabits((data) => {
+  async toggleHabitStatus(habitId: string, date: string): Promise<HabitData> {
+    return this.updateHabits((data) => {
       if (!data.habits.some((h) => h.id === habitId)) {
         throw new Error(`Habit not found: ${habitId}`);
       }
@@ -82,21 +84,22 @@ export class HabitManager {
       dayMap[date] = dayMap[date] ? 0 : 1;
       return true;
     });
-    return data.statuses[habitId]?.[date] ?? 0;
   }
 
-  async deleteHabit(habitId: string): Promise<void> {
-    await this.updateHabits((data) => {
+  async deleteHabit(habitId: string): Promise<HabitData> {
+    return this.updateHabits((data) => {
       data.habits = data.habits.filter((h) => h.id !== habitId);
       delete data.statuses[habitId];
       return true;
     });
   }
 
-  async renameHabit(habitId: string, newName: string): Promise<void> {
+  async renameHabit(habitId: string, newName: string): Promise<HabitData> {
     const trimmed = newName.trim();
-    if (!trimmed) return;
-    await this.updateHabits((data) => {
+    if (!trimmed) {
+      throw new Error("Habit name cannot be empty");
+    }
+    return this.updateHabits((data) => {
       const habit = data.habits.find((h) => h.id === habitId);
       if (!habit) return false;
       habit.name = trimmed;

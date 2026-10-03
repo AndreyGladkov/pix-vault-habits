@@ -25,14 +25,8 @@ export const parseHabitData = (text: string): HabitData => {
   const statuses: HabitStatusMap = {};
 
   for (const row of parseCsv(text)) {
-    const [
-      id,
-      name,
-      date,
-      status,
-      created = formatDate(),
-      category = NO_CATEGORY,
-    ] = row;
+    const [id, name, date, status, createdField, category = NO_CATEGORY] = row;
+    const created = createdField || formatDate();
     if (!id || !name || !date || status === undefined) continue;
 
     const existing = habitsById.get(id);

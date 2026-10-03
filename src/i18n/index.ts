@@ -16,7 +16,7 @@ const LOCALE_NAMES: Record<Locale, string> = {
 };
 
 export const AUTO_LANGUAGE = "auto";
-const DEFAULT_LOCALE = "ru";
+const DEFAULT_LOCALE: Locale = "en";
 
 export const LANGUAGE_OPTIONS: { value: string; label: string }[] = [
   { value: AUTO_LANGUAGE, label: "Auto" },
@@ -26,7 +26,7 @@ export const LANGUAGE_OPTIONS: { value: string; label: string }[] = [
   { value: "de", label: LOCALE_NAMES.de },
 ];
 
-let currentLocale: LocaleData = ru;
+let currentLocale: LocaleData = LOCALES[DEFAULT_LOCALE];
 
 export const resolveLocale = (
   setting: string,
@@ -57,14 +57,15 @@ export const t = (
   key: string,
   params?: Record<string, string | number>,
 ): string => {
-  let str = currentLocale.strings[key] ?? en.strings[key] ?? key;
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      str = str.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-    }
-  }
-  return str;
+  const str = currentLocale.strings[key] ?? en.strings[key] ?? key;
+  if (!params) return str;
+  return str.replace(PLACEHOLDER, (placeholder, name: string) => {
+    const value = params[name];
+    return value === undefined ? placeholder : String(value);
+  });
 };
+
+const PLACEHOLDER = /\{(\w+)\}/g;
 
 export const getWeekdayLabels = (): string[] => currentLocale.weekdayLabels;
 

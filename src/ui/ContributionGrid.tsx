@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { memo, type CSSProperties } from "react";
 import type { Calendar } from "../calendar";
 import {
   formatDisplayDate,
@@ -51,6 +51,7 @@ export const ContributionGrid = ({
                   <DayCell
                     key={date}
                     date={date}
+                    label={cellLabel(date, dayMap[date] === 1)}
                     done={dayMap[date] === 1}
                     today={date === today}
                     onToggle={onToggleDay}
@@ -80,18 +81,27 @@ const WeekdayLabels = () => (
   </div>
 );
 
+const cellLabel = (date: string, done: boolean): string =>
+  t("grid.tooltip", {
+    date: formatDisplayDate(date),
+    yes: done ? t("grid.tooltipDone") : t("grid.tooltipNotDone"),
+  });
+
 interface DayCellProps {
   date: string;
+  label: string;
   done: boolean;
   today: boolean;
   onToggle: (date: string) => void;
 }
 
-const DayCell = ({ date, done, today, onToggle }: DayCellProps) => {
-  const tooltip = t("grid.tooltip", {
-    date: formatDisplayDate(date),
-    yes: done ? t("grid.tooltipDone") : t("grid.tooltipNotDone"),
-  });
+const DayCell = memo(function DayCell({
+  date,
+  label,
+  done,
+  today,
+  onToggle,
+}: DayCellProps) {
   const className = `pvhabits-cell ${done ? "pvhabits-cell-done" : "pvhabits-cell-none"}${
     today ? " pvhabits-cell-today" : ""
   }`;
@@ -100,10 +110,10 @@ const DayCell = ({ date, done, today, onToggle }: DayCellProps) => {
     <div
       role="button"
       className={className}
-      title={tooltip}
-      aria-label={tooltip}
+      title={label}
+      aria-label={label}
       aria-pressed={done}
       onClick={() => onToggle(date)}
     />
   );
-};
+});

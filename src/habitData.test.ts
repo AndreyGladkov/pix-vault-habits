@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   parseHabitData,
   serializeHabitData,
@@ -6,6 +6,18 @@ import {
 } from "./habitData";
 
 describe("parseHabitData", () => {
+  it("falls back to today when the created column is blank", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 3, 12));
+    try {
+      const data = parseHabitData("run,Бег,2026-10-01,1,,Спорт");
+
+      expect(data.habits[0]?.created).toBe("2026-10-03");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("reads legacy 5-column rows as uncategorized", () => {
     const data = parseHabitData("read,Читать,2026-10-01,1,2026-09-01");
 
