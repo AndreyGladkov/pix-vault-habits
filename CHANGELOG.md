@@ -1,3 +1,17 @@
+## 1.2.0 (2026-10-03)
+
+### Feat
+
+- **src**: add habit categories with tabs
+
+### Fix
+
+- **src**: address categories review findings and default to English locale
+
+### Refactor
+
+- **src**: rewrite UI on React 19
+
 ## 1.1.5 (2026-08-25)
 
 ### Fix
