@@ -76,6 +76,7 @@ export const ru: LocaleData = {
     "notice.moveHabitFailed": "Не удалось перенести привычку",
     "notice.renameCategoryFailed": "Не удалось переименовать категорию",
     "notice.deleteCategoryFailed": "Не удалось удалить категорию",
+    "notice.saveCategoriesFailed": "Не удалось сохранить категории",
 
     // Settings
     "settings.csvPath.name": "Путь к CSV-файлу",

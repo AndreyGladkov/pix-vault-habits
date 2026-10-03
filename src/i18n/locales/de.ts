@@ -76,6 +76,7 @@ export const de: LocaleData = {
     "notice.moveHabitFailed": "Gewohnheit konnte nicht verschoben werden",
     "notice.renameCategoryFailed": "Kategorie konnte nicht umbenannt werden",
     "notice.deleteCategoryFailed": "Kategorie konnte nicht gelöscht werden",
+    "notice.saveCategoriesFailed": "Kategorien konnten nicht gespeichert werden",
 
     // Settings
     "settings.csvPath.name": "CSV-Dateipfad",

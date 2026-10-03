@@ -1,4 +1,6 @@
+import { useCallback } from "react";
 import type { Calendar } from "../calendar";
+import { formatDate } from "../csv";
 import { NO_CATEGORY, type HabitRecord } from "../habitData";
 import { t } from "../i18n";
 import { ContributionGrid } from "./ContributionGrid";
@@ -23,7 +25,10 @@ export const HabitCard = ({
   today,
   actions,
 }: HabitCardProps) => {
-  const toggleDay = (date: string) => actions.toggleDay(habit.id, date);
+  const toggleDay = useCallback(
+    (date: string) => actions.toggleDay(habit.id, date),
+    [actions, habit.id],
+  );
 
   return (
     <div className="pvhabits-habit-block">
@@ -61,7 +66,7 @@ export const HabitCard = ({
             )}
             <button
               className="pvhabits-btn pvhabits-btn-today"
-              onClick={() => toggleDay(today)}
+              onClick={() => toggleDay(formatDate())}
             >
               {t("habit.today")}
             </button>

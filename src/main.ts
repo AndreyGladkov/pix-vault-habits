@@ -126,6 +126,10 @@ export default class PixVaultHabitsPlugin extends Plugin {
     this.addSettingTab(new PixVaultHabitsSettingTab(this.app, this));
   }
 
+  onunload() {
+    this.reloadFromNewPath.cancel();
+  }
+
   async loadSettings() {
     const settings = Object.assign(
       {},
@@ -162,6 +166,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
     const leaves = workspace.getLeavesOfType(VIEW_TYPE);
     if (leaves.length > 0 && leaves[0]) {
       leaf = leaves[0];
+      void this.reloadHabits();
     } else {
       const newLeaf = workspace.getRightLeaf(false);
       if (!newLeaf) {
@@ -196,20 +201,21 @@ export default class PixVaultHabitsPlugin extends Plugin {
   private async addHabit(category: string) {
     const name = await openAddHabitModal(this.app);
     if (!name) return;
-    const id = await this.attempt("addHabit", "notice.addHabitFailed", () =>
+    const data = await this.attempt("addHabit", "notice.addHabitFailed", () =>
       this.habitManager.addHabit(name, category),
     );
-    if (id === null) return;
+    if (!data) return;
+    this.store.applyChanges({ data });
     new Notice(t("notice.habitAdded", { name }));
-    await this.reloadHabits();
   }
 
   async toggleDate(habitId: string, date: string): Promise<number | null> {
-    const status = await this.attempt("toggleDate", "notice.toggleFailed", () =>
+    const data = await this.attempt("toggleDate", "notice.toggleFailed", () =>
       this.habitManager.toggleHabitStatus(habitId, date),
     );
-    if (status !== null) await this.reloadHabits();
-    return status;
+    if (!data) return null;
+    this.store.applyChanges({ data });
+    return data.statuses[habitId]?.[date] ?? 0;
   }
 
   deleteHabit({ id, name }: HabitRecord) {
@@ -217,14 +223,14 @@ export default class PixVaultHabitsPlugin extends Plugin {
       this.app,
       t("confirm.deleteHabit", { name }),
       async () => {
-        const deleted = await this.attempt(
+        const data = await this.attempt(
           "deleteHabit",
           "notice.deleteHabitFailed",
-          () => this.habitManager.deleteHabit(id).then(() => true),
+          () => this.habitManager.deleteHabit(id),
         );
-        if (!deleted) return;
+        if (!data) return;
+        this.store.applyChanges({ data });
         new Notice(t("notice.habitDeleted", { name }));
-        await this.reloadHabits();
       },
     );
   }
@@ -232,14 +238,14 @@ export default class PixVaultHabitsPlugin extends Plugin {
   private async renameHabit(habit: HabitRecord) {
     const name = await openRenameHabitModal(this.app, habit.name);
     if (!name) return;
-    const renamed = await this.attempt(
+    const data = await this.attempt(
       "renameHabit",
       "notice.renameHabitFailed",
-      () => this.habitManager.renameHabit(habit.id, name).then(() => true),
+      () => this.habitManager.renameHabit(habit.id, name),
     );
-    if (!renamed) return;
+    if (!data) return;
+    this.store.applyChanges({ data });
     new Notice(t("notice.habitRenamed"));
-    await this.reloadHabits();
   }
 
   private async moveHabit(habit: HabitRecord, category: string) {
@@ -305,16 +311,20 @@ export default class PixVaultHabitsPlugin extends Plugin {
     );
   }
 
+  // `data` is the CSV as of this change; applying it after the saveData await
+  // would let it overwrite habit changes that landed during that await.
   private async saveCategories(categories: string[], data?: HabitData) {
-    this.settings = { ...this.settings, categories };
-    await this.saveData(this.settings);
     this.store.applyChanges({ categories, data });
+    this.settings = { ...this.settings, categories };
+    await this.attempt(
+      "saveCategories",
+      "notice.saveCategoriesFailed",
+      () => this.saveData(this.settings),
+    );
   }
 
   private async markTodayViaPicker() {
-    if (this.store.getSnapshot().habits.status !== "ready") {
-      await this.reloadHabits();
-    }
+    await this.reloadHabits();
     const { habits } = this.store.getSnapshot();
     if (habits.status !== "ready") {
       new Notice(t("picker.loadError"));

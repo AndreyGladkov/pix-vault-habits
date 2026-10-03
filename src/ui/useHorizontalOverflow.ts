@@ -18,18 +18,15 @@ export const useHorizontalOverflow = (
     if (!scroller) return;
 
     const update = () => {
-      const start = scroller.scrollLeft > 0;
-      // scrollLeft is fractional on HiDPI screens, so the end is never hit exactly.
-      const end =
-        scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1;
+      const start = canScrollBy(scroller, -1);
+      const end = canScrollBy(scroller, 1);
       setOverflow((prev) =>
         prev.start === start && prev.end === end ? prev : { start, end },
       );
     };
 
     const scrollHorizontally = (event: WheelEvent) => {
-      const overflowing = scroller.scrollWidth > scroller.clientWidth;
-      if (!overflowing || event.deltaX !== 0 || event.deltaY === 0) return;
+      if (event.deltaX !== 0 || !canScrollBy(scroller, event.deltaY)) return;
       event.preventDefault();
       scroller.scrollLeft += event.deltaY;
     };
@@ -55,4 +52,15 @@ export const useHorizontalOverflow = (
   }, [scrollerRef, wheelScrolls]);
 
   return overflow;
+};
+
+const canScrollBy = (scroller: HTMLElement, delta: number): boolean => {
+  if (delta < 0) return scroller.scrollLeft > 0;
+  if (delta > 0) {
+    // scrollLeft is fractional on HiDPI screens, so the end is never hit exactly.
+    return (
+      scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1
+    );
+  }
+  return false;
 };

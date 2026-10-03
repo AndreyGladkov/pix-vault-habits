@@ -134,7 +134,35 @@ describe("HabitTracker", () => {
 
     expect(screen.getByText("Today")).toBeTruthy();
     expect(screen.getByText("🔥 2 days · ✅ 2")).toBeTruthy();
+    expect(screen.getByLabelText("Date: 01.10.2026, Done: Yes")).toBeTruthy();
     expect(screen.getAllByRole("button", { pressed: true })).toHaveLength(2);
+  });
+
+  it("marks the date of the click, not of the last render, via Today", async () => {
+    const user = userEvent.setup();
+    vi.setSystemTime(new Date(2026, 9, 3, 23, 59));
+    const { actions } = await renderLoaded(habitData);
+
+    vi.setSystemTime(new Date(2026, 9, 4, 0, 10));
+    await user.click(screen.getByText("Сегодня"));
+
+    expect(actions.toggleDay).toHaveBeenCalledWith("read", "2026-10-04");
+  });
+
+  it("moves the grid to the new day at midnight", async () => {
+    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
+    vi.setSystemTime(new Date(2026, 9, 3, 23, 59));
+    await renderLoaded(habitData);
+    expect(
+      screen.queryByLabelText("Дата: 04.10.2026, Выполнено: Нет"),
+    ).toBeNull();
+
+    act(() => {
+      vi.advanceTimersByTime(2 * 60 * 1000);
+    });
+
+    const today = screen.getByLabelText("Дата: 04.10.2026, Выполнено: Нет");
+    expect(today.className).toContain("pvhabits-cell-today");
   });
 
   describe("categories", () => {
@@ -283,6 +311,28 @@ describe("HabitTracker", () => {
         "Все",
       );
       expect(screen.getByText("Читать")).toBeTruthy();
+    });
+
+    it("forgets a selected tab once it disappears", async () => {
+      const user = userEvent.setup();
+      const { store } = await renderLoaded(categorized, {
+        categories: ["Спорт"],
+      });
+
+      await user.click(screen.getByRole("tab", { name: "Без категории" }));
+      act(() =>
+        store.applyChanges({
+          data: {
+            ...categorized,
+            habits: [run, { ...read, category: "Спорт" }],
+          },
+        }),
+      );
+      act(() => store.applyChanges({ data: categorized }));
+
+      expect(screen.getByRole("tab", { selected: true }).textContent).toBe(
+        "Все",
+      );
     });
   });
 });
