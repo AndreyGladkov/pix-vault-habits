@@ -32,10 +32,14 @@ const context = await esbuild.context({
 		"@lezer/lr",
 		...builtins,
 	],
+	define: {
+		"process.env.NODE_ENV": JSON.stringify(prod ? "production" : "development"),
+	},
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
+	minify: prod,
 	treeShaking: true,
 	outfile: "main.js",
 });

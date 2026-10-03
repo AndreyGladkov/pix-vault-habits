@@ -1,14 +1,17 @@
-import { formatDate } from "../csv";
+import { dateFromString, formatDate } from "../csv";
 
-export const computeStreak = (dayMap: Record<string, number>): number => {
-  let streak = 0;
-  const cursor = new Date();
-  cursor.setHours(0, 0, 0, 0);
-
-  if (dayMap[formatDate(cursor)] !== 1) {
+// A streak is still alive while today is not marked yet: it is counted back
+// from yesterday so the user does not see it reset every morning.
+export const computeStreak = (
+  dayMap: Record<string, number>,
+  today: string,
+): number => {
+  const cursor = dateFromString(today);
+  if (dayMap[today] !== 1) {
     cursor.setDate(cursor.getDate() - 1);
   }
 
+  let streak = 0;
   while (dayMap[formatDate(cursor)] === 1) {
     streak++;
     cursor.setDate(cursor.getDate() - 1);
@@ -16,10 +19,5 @@ export const computeStreak = (dayMap: Record<string, number>): number => {
   return streak;
 };
 
-export const countDone = (dayMap: Record<string, number>): number => {
-  let count = 0;
-  for (const key in dayMap) {
-    if (dayMap[key] === 1) count++;
-  }
-  return count;
-};
+export const countDone = (dayMap: Record<string, number>): number =>
+  Object.values(dayMap).filter((status) => status === 1).length;

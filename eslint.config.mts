@@ -18,7 +18,11 @@ export default defineConfig(
       // config; only the TypeScript project service needs to be configured here.
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["eslint.config.mts", "manifest.json"],
+          allowDefaultProject: [
+            "eslint.config.mts",
+            "vitest.config.mts",
+            "manifest.json",
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: [".json"],

@@ -6,16 +6,17 @@ A plugin that lets you create habits and track your progress directly in Obsidia
 ```
 pix-vault-habits/
 ├── src/
-│   ├── main.ts          # Plugin: commands, view, settings, handlers
-│   ├── view.ts          # HabitTrackerView — GitHub-style grid
+│   ├── main.ts          # Plugin: commands, settings, handlers
+│   ├── view.tsx         # HabitTrackerView — mounts the React UI
+│   ├── store.ts         # UI state for useSyncExternalStore
 │   ├── habitManager.ts  # Read/write CSV via Vault API
-│   ├── modal.ts         # AddHabitModal
+│   ├── calendar.ts      # Weeks/months layout of the grid
 │   ├── csv.ts           # CSV parsing/serialization, IDs, dates
 │   ├── i18n/            # Localization (en, ru, fr, de)
 │   │   ├── index.ts     # t(), setLocale(), date formatting, day/month labels
 │   │   ├── types.ts     # Locale / LocaleData types
 │   │   └── locales/     # en.ts, ru.ts, fr.ts, de.ts
-│   └── ui/              # UI components (grid, habit block, modals)
+│   └── ui/              # React 19 components (grid, habit card, modals)
 ├── styles.css           # Grid and interface styles
 ├── manifest.json
 ├── package.json
@@ -38,7 +39,7 @@ pix-vault-habits/
 
 Copy the `pix-vault-habits` folder into your Obsidian plugins directory (`.obsidian/plugins/`) and enable the plugin in the settings. To rebuild after making changes, run `npm run build` in the project directory.
 
-To start dev mode with auto-rebuild: `npm run dev`.
+To start dev mode with auto-rebuild: `npm run dev`. Run tests with `npm test`.
 
 # Плагин **Pix Vault Habits** для Obsidian.
 
@@ -48,16 +49,17 @@ To start dev mode with auto-rebuild: `npm run dev`.
 ```
 pix-vault-habits/
 ├── src/
-│   ├── main.ts          # Плагин: команды, view, настройки, обработчики
-│   ├── view.ts          # HabitTrackerView — сетка GitHub-style
+│   ├── main.ts          # Плагин: команды, настройки, обработчики
+│   ├── view.tsx         # HabitTrackerView — монтирует React-интерфейс
+│   ├── store.ts         # Состояние UI для useSyncExternalStore
 │   ├── habitManager.ts  # Чтение/запись CSV через Vault API
-│   ├── modal.ts         # AddHabitModal
+│   ├── calendar.ts      # Раскладка сетки по неделям и месяцам
 │   ├── csv.ts           # Парсинг/сериализация CSV, ID, даты
 │   ├── i18n/            # Локализация (en, ru, fr, de)
 │   │   ├── index.ts     # t(), setLocale(), формат дат, подписи дней/месяцев
 │   │   ├── types.ts     # Типы Locale / LocaleData
 │   │   └── locales/     # en.ts, ru.ts, fr.ts, de.ts
-│   └── ui/              # Компоненты интерфейса (сетка, блок привычки, модалки)
+│   └── ui/              # React 19 компоненты (сетка, карточка привычки, модалки)
 ├── styles.css           # Стили сетки и интерфейса
 ├── manifest.json
 ├── package.json
@@ -80,4 +82,4 @@ pix-vault-habits/
 
 Скопируйте папку `pix-vault-habits` в каталог плагинов Obsidian (`.obsidian/plugins/`) и включите плагин в настройках. Для пересборки после изменений выполните `npm run build` в каталоге проекта.
 
-Для запуска dev-режима с автопересборкой: `npm run dev`.
+Для запуска dev-режима с автопересборкой: `npm run dev`. Тесты: `npm test`.
