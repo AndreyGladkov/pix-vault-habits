@@ -108,3 +108,13 @@ export const dateFromString = (dateStr: string): Date => {
 
   throw new Error("date string invalid format");
 };
+
+export const datesBetween = (from: string, to: string): string[] => {
+  const dates: string[] = [];
+  const cursor = dateFromString(from);
+  for (let date = formatDate(cursor); date <= to; date = formatDate(cursor)) {
+    dates.push(date);
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+};

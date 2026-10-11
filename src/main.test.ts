@@ -5,6 +5,7 @@ import { createVault } from "./test/vault";
 import {
   HabitPickerModal,
   openConfirmDeleteModal,
+  openEditHabitModal,
   openRenameCategoryModal,
 } from "./ui/modals";
 
@@ -20,7 +21,7 @@ vi.mock("./view", () => ({
 
 vi.mock("./ui/modals", () => ({
   openAddHabitModal: vi.fn(),
-  openRenameHabitModal: vi.fn(),
+  openEditHabitModal: vi.fn(),
   openAddCategoryModal: vi.fn(),
   openRenameCategoryModal: vi.fn(),
   openConfirmDeleteModal: vi.fn(),
@@ -114,6 +115,42 @@ describe("PixVaultHabitsPlugin", () => {
     });
   });
 
+  it("switches a habit to auto-done from the edit modal", async () => {
+    const { vault, actions, habits } = await setup(
+      "run,Бег,2026-10-01,1,2026-09-01,,",
+    );
+    vi.mocked(openEditHabitModal).mockResolvedValue({
+      name: "Бегать",
+      autoDone: true,
+    });
+
+    actions.editHabit(habits()[0]!);
+    await vi.waitFor(() => expect(habits()[0]?.name).toBe("Бегать"));
+
+    expect(vault.files.get(PATH)).toBe(
+      "run,Бегать,2026-10-01,1,2026-09-01,,2026-10-03",
+    );
+    expect(noticeMessages()).toEqual(["Habit updated"]);
+  });
+
+  it("reports an auto-done day as unmarked after marking today", async () => {
+    const { plugin } = await setup(
+      "smoke,Не курить,2026-10-03,,2026-10-03,,2026-10-03",
+    );
+
+    await plugin["markTodayViaPicker"]();
+    const [, , onPick] = vi.mocked(HabitPickerModal).mock.calls[0]!;
+    await onPick({
+      id: "smoke",
+      name: "Не курить",
+      created: "2026-10-03",
+      category: "",
+      autoDoneSince: "2026-10-03",
+    });
+
+    expect(noticeMessages()).toEqual(["Mark removed"]);
+  });
+
   it("renames a category in the CSV, the settings and the view", async () => {
     const { vault, actions, saveData, habits, store } = await setup(
       "run,Бег,2026-10-01,1,2026-09-01,Спорт",
@@ -123,7 +160,7 @@ describe("PixVaultHabitsPlugin", () => {
     expect(await actions.renameCategory("Спорт")).toBe("Движение");
 
     expect(vault.files.get(PATH)).toBe(
-      "run,Бег,2026-10-01,1,2026-09-01,Движение",
+      "run,Бег,2026-10-01,1,2026-09-01,Движение,",
     );
     expect(saveData).toHaveBeenCalledWith(
       expect.objectContaining({ categories: ["Движение"] }),
@@ -185,7 +222,7 @@ describe("PixVaultHabitsPlugin", () => {
     actions.deleteCategory("Спорт");
     await confirmed();
 
-    expect(vault.files.get(PATH)).toBe("run,Бег,2026-10-01,1,2026-09-01,");
+    expect(vault.files.get(PATH)).toBe("run,Бег,2026-10-01,1,2026-09-01,,");
     expect(saveData).toHaveBeenCalledWith(
       expect.objectContaining({ categories: [] }),
     );
@@ -199,7 +236,9 @@ describe("PixVaultHabitsPlugin", () => {
     actions.moveHabit(habits()[0]!, "Спорт");
     await vi.waitFor(() => expect(habits()[0]?.category).toBe("Спорт"));
 
-    expect(vault.files.get(PATH)).toBe("run,Бег,2026-10-01,1,2026-09-01,Спорт");
+    expect(vault.files.get(PATH)).toBe(
+      "run,Бег,2026-10-01,1,2026-09-01,Спорт,",
+    );
   });
 
   it("re-reads the file before offering habits to mark", async () => {

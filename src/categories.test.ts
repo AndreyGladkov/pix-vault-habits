@@ -17,6 +17,7 @@ const habit = (id: string, category: string): HabitRecord => ({
   name: id,
   created: "2026-10-01",
   category,
+  autoDoneSince: "",
 });
 
 const habits = [

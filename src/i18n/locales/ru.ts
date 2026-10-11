@@ -12,8 +12,8 @@ export const ru: LocaleData = {
     "notice.addHabitFailed": "Не удалось добавить привычку",
     "notice.habitDeleted": "Привычка «{name}» удалена",
     "notice.deleteHabitFailed": "Не удалось удалить привычку",
-    "notice.habitRenamed": "Привычка переименована",
-    "notice.renameHabitFailed": "Не удалось переименовать привычку",
+    "notice.habitUpdated": "Привычка обновлена",
+    "notice.editHabitFailed": "Не удалось обновить привычку",
     "notice.toggleFailed": "Не удалось обновить статус привычки",
     "notice.markedDone": "Отмечено выполненным на сегодня",
     "notice.markUndone": "Отметка снята",
@@ -43,21 +43,24 @@ export const ru: LocaleData = {
     "modal.cancel": "Отмена",
     "modal.create": "Создать",
 
-    // Rename habit modal
-    "modal.rename.title": "Переименовать привычку",
-    "modal.rename.nameLabel": "Название",
+    // Edit habit modal
+    "modal.edit.title": "Редактировать привычку",
+    "modal.edit.nameLabel": "Название",
+    "modal.habit.autoDoneLabel": "Автовыполнение",
+    "modal.habit.autoDoneDesc": "Каждый день считается выполненным, пока вы не отметите пропуск.",
     "modal.save": "Сохранить",
 
     // Habit block
     "habit.stats": "🔥 {streak} дн. · ✅ {done}",
     "habit.today": "Сегодня",
-    "habit.renameAria": "Переименовать",
+    "habit.editAria": "Редактировать",
     "habit.deleteAria": "Удалить",
     "habit.idTooltip": "ID: {id}",
 
     // Grid tooltip
     "grid.tooltip": "Дата: {date}, Выполнено: {yes}",
     "grid.tooltipDone": "Да",
+    "grid.tooltipAutoDone": "Да (автоматически)",
     "grid.tooltipNotDone": "Нет",
 
     // Categories

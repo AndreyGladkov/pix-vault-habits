@@ -1,5 +1,6 @@
 import { memo, type CSSProperties } from "react";
 import type { Calendar } from "../calendar";
+import { dayState, type DayState, type HabitRecord } from "../habitData";
 import {
   formatDisplayDate,
   getMonthLabels,
@@ -9,6 +10,7 @@ import {
 
 interface ContributionGridProps {
   calendar: Calendar;
+  habit: HabitRecord;
   dayMap: Record<string, number>;
   today: string;
   onToggleDay: (date: string) => void;
@@ -16,6 +18,7 @@ interface ContributionGridProps {
 
 export const ContributionGrid = ({
   calendar,
+  habit,
   dayMap,
   today,
   onToggleDay,
@@ -44,25 +47,27 @@ export const ContributionGrid = ({
         <div className="pvhabits-grid-body">
           <WeekdayLabels />
           <div className="pvhabits-grid">
-            {calendar.weeks
-              .flat()
-              .map((date, index) =>
-                date ? (
-                  <DayCell
-                    key={date}
-                    date={date}
-                    label={cellLabel(date, dayMap[date] === 1)}
-                    done={dayMap[date] === 1}
-                    today={date === today}
-                    onToggle={onToggleDay}
-                  />
-                ) : (
+            {calendar.weeks.flat().map((date, index) => {
+              if (!date) {
+                return (
                   <div
                     key={`empty-${index}`}
                     className="pvhabits-cell pvhabits-cell-empty"
                   />
-                ),
-              )}
+                );
+              }
+              const state = dayState(habit, dayMap, date);
+              return (
+                <DayCell
+                  key={date}
+                  date={date}
+                  label={cellLabel(date, state)}
+                  state={state}
+                  today={date === today}
+                  onToggle={onToggleDay}
+                />
+              );
+            })}
           </div>
           <WeekdayLabels />
         </div>
@@ -81,16 +86,25 @@ const WeekdayLabels = () => (
   </div>
 );
 
-const cellLabel = (date: string, done: boolean): string =>
+const STATE_VIEWS: Record<DayState, { labelKey: string; className: string }> = {
+  done: { labelKey: "grid.tooltipDone", className: "pvhabits-cell-done" },
+  autoDone: {
+    labelKey: "grid.tooltipAutoDone",
+    className: "pvhabits-cell-auto",
+  },
+  missed: { labelKey: "grid.tooltipNotDone", className: "pvhabits-cell-none" },
+};
+
+const cellLabel = (date: string, state: DayState): string =>
   t("grid.tooltip", {
     date: formatDisplayDate(date),
-    yes: done ? t("grid.tooltipDone") : t("grid.tooltipNotDone"),
+    yes: t(STATE_VIEWS[state].labelKey),
   });
 
 interface DayCellProps {
   date: string;
   label: string;
-  done: boolean;
+  state: DayState;
   today: boolean;
   onToggle: (date: string) => void;
 }
@@ -98,11 +112,11 @@ interface DayCellProps {
 const DayCell = memo(function DayCell({
   date,
   label,
-  done,
+  state,
   today,
   onToggle,
 }: DayCellProps) {
-  const className = `pvhabits-cell ${done ? "pvhabits-cell-done" : "pvhabits-cell-none"}${
+  const className = `pvhabits-cell ${STATE_VIEWS[state].className}${
     today ? " pvhabits-cell-today" : ""
   }`;
 
@@ -112,7 +126,7 @@ const DayCell = memo(function DayCell({
       className={className}
       title={label}
       aria-label={label}
-      aria-pressed={done}
+      aria-pressed={state !== "missed"}
       onClick={() => onToggle(date)}
     />
   );

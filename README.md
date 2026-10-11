@@ -30,13 +30,16 @@ pix-vault-habits/
 
 ## Implemented Features
 
-- **CSV storage**: the `pixVaultHabits/habits.csv` file is created automatically on first launch in the visible `pixVaultHabits` folder at the root of your vault. Row format: `<ID>,<Name>,<Date>,<Status 1|0>,<Created date>,<Category>` (files without the category column are still read). When writing to an existing date, the status is updated without creating duplicates. The CSV parser supports commas, quotes, and line breaks in habit names (RFC-4180).
+- **CSV storage**: the `pixVaultHabits/habits.csv` file is created automatically on first launch in the visible `pixVaultHabits` folder at the root of your vault. Row format: `<ID>,<Name>,<Date>,<Status 1|0>,<Created date>,<Category>,<Auto-complete since>` (files without the last columns are still read; an empty status marks a habit with no marked days). When writing to an existing date, the status is updated without creating duplicates. The CSV parser supports commas, quotes, and line breaks in habit names (RFC-4180).
 - **Commands (Ctrl+P)**: `Add new habit`, `Open habit tracker`, `Mark today as done` (with habit selection via picker).
 - **GitHub-style grid**: for each habit — a header, statistics (streak 🔥 + total ✅), month labels, week columns (Mon–Sun), 12×12 px squares.
-- **Interaction**: clicking a square toggles the status (works for both today and past days), today is highlighted with an outline, tooltip shows "Date: DD.MM.YYYY, Completed: Yes/No", horizontal scrolling, "Today", "Rename", and "Delete" buttons.
+- **Interaction**: clicking a square toggles the status (works for both today and past days), today is highlighted with an outline, tooltip shows "Date: DD.MM.YYYY, Completed: Yes/No", horizontal scrolling, "Today", "Edit" (name and auto-complete), and "Delete" buttons.
 - **Categories**: habits are grouped into tabs ("All", each category, "Uncategorized"). Tabs scroll horizontally when they do not fit. Add a category with "+", rename the active one with "✎", delete it with "×" (its habits stay, uncategorized), move a habit with the category dropdown on its card. A habit added while a category tab is open goes into that category.
 
   > **Update on every device.** Categories are stored in a new sixth CSV column, available since 1.2.0. Versions up to 1.1.5 do not know about it and drop it on any change (marking a day, adding, renaming or deleting a habit), so every habit becomes uncategorized. If your vault is synced across several devices, update the plugin on all of them before assigning categories.
+- **Auto-complete**: tick "Auto-complete" when adding or editing a habit, and every day from then on counts as done until you mark it as missed — handy for habits like "No smoking". Auto-completed days are shown in a lighter shade of the done color and count towards the streak and the total; today counts at once. Clicking an auto-completed day marks it as missed, clicking again returns it to auto-complete. Nothing is written to the CSV for those days; when auto-complete is switched off, the past auto-completed days are written as done.
+
+  > **Update on every device.** The auto-complete date is stored in a new seventh CSV column, available since 1.3.0. Older versions drop it on any change, which switches auto-complete off and leaves the auto-completed days unmarked.
 - **Settings**: CSV path, number of days (30/90/365), completed color, uncompleted color.
 - **Themes**: colors adapt through Obsidian CSS variables (light/dark).
 
@@ -78,13 +81,16 @@ pix-vault-habits/
 
 ## Реализованные функции
 
-- **Хранение в CSV**: файл `pixVaultHabits/habits.csv` создаётся автоматически при первом запуске в видимой папке `pixVaultHabits` в корне хранилища. Формат строки `<ID>,<Название>,<Дата>,<Статус 1|0>,<Дата создания>,<Категория>` (файлы без колонки категории тоже читаются). При записи за существующую дату статус обновляется, дубликаты не создаются. CSV-парсер поддерживает запятые, кавычки и переносы строк в названиях (RFC-4180).
+- **Хранение в CSV**: файл `pixVaultHabits/habits.csv` создаётся автоматически при первом запуске в видимой папке `pixVaultHabits` в корне хранилища. Формат строки `<ID>,<Название>,<Дата>,<Статус 1|0>,<Дата создания>,<Категория>,<Автовыполнение с>` (файлы без последних колонок тоже читаются; пустой статус означает привычку без отметок). При записи за существующую дату статус обновляется, дубликаты не создаются. CSV-парсер поддерживает запятые, кавычки и переносы строк в названиях (RFC-4180).
 - **Команды (Ctrl+P)**: `Add new habit`, `Open habit tracker`, `Mark today as done` (с выбором привычки через пикер).
 - **Сетка GitHub-style**: для каждой привычки — заголовок, статистика (streak 🔥 + всего ✅), подписи месяцев, колонки недель (Пн–Вс), квадраты 12×12 px.
-- **Взаимодействие**: клик по квадрату переключает статус (и сегодня, и прошлые дни), сегодня подсвечен рамкой, tooltip «Дата: ДД.ММ.ГГГГ, Выполнено: Да/Нет», горизонтальный скролл, кнопки «Сегодня», «Переименовать», «Удалить».
+- **Взаимодействие**: клик по квадрату переключает статус (и сегодня, и прошлые дни), сегодня подсвечен рамкой, tooltip «Дата: ДД.ММ.ГГГГ, Выполнено: Да/Нет», горизонтальный скролл, кнопки «Сегодня», «Редактировать» (название и автовыполнение), «Удалить».
 - **Категории**: привычки сгруппированы по табам («Все», каждая категория, «Без категории»). Если табы не помещаются, они прокручиваются по горизонтали. Категория добавляется кнопкой «+», активная переименовывается «✎» и удаляется «×» (привычки остаются без категории), привычка переносится выпадающим списком категории в её карточке. Привычка, добавленная на табе категории, попадает в эту категорию.
 
   > **Обновите плагин на всех устройствах.** Категории хранятся в новой, шестой колонке CSV (начиная с версии 1.2.0). Версии до 1.1.5 включительно о ней не знают и при любом изменении (отметка дня, добавление, переименование или удаление привычки) перезаписывают файл без неё — все привычки остаются без категории. Если хранилище синхронизируется между несколькими устройствами, обновите плагин на каждом из них, прежде чем раскладывать привычки по категориям.
+- **Автовыполнение**: отметьте «Автовыполнение» при добавлении или редактировании привычки, и с этого дня каждый день считается выполненным, пока вы не отметите пропуск. Удобно для привычек вроде «Не курить». Автоматически выполненные дни показываются более светлым оттенком цвета выполненного и учитываются в серии и общем счёте; сегодняшний день засчитывается сразу. Клик по такому дню отмечает пропуск, повторный клик возвращает автовыполнение. За эти дни в CSV ничего не пишется; при выключении автовыполнения прошедшие дни записываются как выполненные.
+
+  > **Обновите плагин на всех устройствах.** Дата автовыполнения хранится в новой, седьмой колонке CSV (начиная с версии 1.3.0). Более старые версии при любом изменении удаляют её — автовыполнение выключается, а автоматически выполненные дни остаются без отметки.
 - **Настройки**: путь к CSV, количество дней (30/90/365), цвет выполненного, цвет невыполненного.
 - **Темы**: цвета адаптируются через CSS-переменные Obsidian (светлая/тёмная).
 

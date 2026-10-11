@@ -16,6 +16,7 @@ const read = {
   name: "Читать",
   created: "2026-09-01",
   category: "",
+  autoDoneSince: "",
 };
 const habitData: HabitData = {
   habits: [read],
@@ -26,7 +27,7 @@ const createActions = (): TrackerActions => ({
   addHabit: vi.fn(),
   refresh: vi.fn(),
   toggleDay: vi.fn(),
-  renameHabit: vi.fn(),
+  editHabit: vi.fn(),
   deleteHabit: vi.fn(),
   moveHabit: vi.fn(),
   addCategory: vi.fn(() => Promise.resolve(null)),
@@ -99,14 +100,14 @@ describe("HabitTracker", () => {
     await user.click(screen.getByLabelText("Обновить"));
     await user.click(screen.getByText("Сегодня"));
     await user.click(screen.getByLabelText("Дата: 01.10.2026, Выполнено: Да"));
-    await user.click(screen.getByLabelText("Переименовать"));
+    await user.click(screen.getByLabelText("Редактировать"));
     await user.click(screen.getByLabelText("Удалить"));
 
     expect(actions.addHabit).toHaveBeenCalledWith("");
     expect(actions.refresh).toHaveBeenCalled();
     expect(actions.toggleDay).toHaveBeenNthCalledWith(1, "read", "2026-10-03");
     expect(actions.toggleDay).toHaveBeenNthCalledWith(2, "read", "2026-10-01");
-    expect(actions.renameHabit).toHaveBeenCalledWith(read);
+    expect(actions.editHabit).toHaveBeenCalledWith(read);
     expect(actions.deleteHabit).toHaveBeenCalledWith(read);
   });
 
@@ -124,6 +125,26 @@ describe("HabitTracker", () => {
       "#40c463",
     );
     expect(root.style.getPropertyValue("--pvhabits-empty-color")).toBe("gray");
+  });
+
+  it("shows auto-done days apart from marked ones", async () => {
+    await renderLoaded({
+      habits: [{ ...read, autoDoneSince: "2026-10-02" }],
+      statuses: { read: { "2026-10-01": 1, "2026-10-02": 0 } },
+    });
+
+    const auto = screen.getByLabelText(
+      "Дата: 03.10.2026, Выполнено: Да (автоматически)",
+    );
+    expect(auto.className).toContain("pvhabits-cell-auto");
+    expect(auto.getAttribute("aria-pressed")).toBe("true");
+    expect(
+      screen.getByLabelText("Дата: 01.10.2026, Выполнено: Да").className,
+    ).toContain("pvhabits-cell-done");
+    expect(
+      screen.getByLabelText("Дата: 02.10.2026, Выполнено: Нет").className,
+    ).toContain("pvhabits-cell-none");
+    expect(screen.getByText("🔥 1 дн. · ✅ 2")).toBeTruthy();
   });
 
   it("re-renders on store updates, including a locale switch", async () => {
@@ -171,6 +192,7 @@ describe("HabitTracker", () => {
       name: "Бегать",
       created: "2026-09-01",
       category: "Спорт",
+      autoDoneSince: "",
     };
     const categorized: HabitData = { habits: [run, read], statuses: {} };
 

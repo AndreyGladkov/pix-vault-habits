@@ -29,7 +29,7 @@ export interface TrackerActions {
   addHabit: (category: string) => void;
   refresh: () => void;
   toggleDay: (habitId: string, date: string) => void;
-  renameHabit: (habit: HabitRecord) => void;
+  editHabit: (habit: HabitRecord) => void;
   deleteHabit: (habit: HabitRecord) => void;
   moveHabit: (habit: HabitRecord, category: string) => void;
   addCategory: () => Promise<string | null>;

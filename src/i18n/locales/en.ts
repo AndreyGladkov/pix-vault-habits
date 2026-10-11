@@ -12,8 +12,8 @@ export const en: LocaleData = {
     "notice.addHabitFailed": "Failed to add habit",
     "notice.habitDeleted": "Habit \"{name}\" deleted",
     "notice.deleteHabitFailed": "Failed to delete habit",
-    "notice.habitRenamed": "Habit renamed",
-    "notice.renameHabitFailed": "Failed to rename habit",
+    "notice.habitUpdated": "Habit updated",
+    "notice.editHabitFailed": "Failed to update habit",
     "notice.toggleFailed": "Failed to update habit status",
     "notice.markedDone": "Marked as done for today",
     "notice.markUndone": "Mark removed",
@@ -43,21 +43,24 @@ export const en: LocaleData = {
     "modal.cancel": "Cancel",
     "modal.create": "Create",
 
-    // Rename habit modal
-    "modal.rename.title": "Rename habit",
-    "modal.rename.nameLabel": "Name",
+    // Edit habit modal
+    "modal.edit.title": "Edit habit",
+    "modal.edit.nameLabel": "Name",
+    "modal.habit.autoDoneLabel": "Auto-complete",
+    "modal.habit.autoDoneDesc": "Every day counts as done unless you mark it as missed.",
     "modal.save": "Save",
 
     // Habit block
     "habit.stats": "🔥 {streak} days · ✅ {done}",
     "habit.today": "Today",
-    "habit.renameAria": "Rename",
+    "habit.editAria": "Edit",
     "habit.deleteAria": "Delete",
     "habit.idTooltip": "ID: {id}",
 
     // Grid tooltip
     "grid.tooltip": "Date: {date}, Done: {yes}",
     "grid.tooltipDone": "Yes",
+    "grid.tooltipAutoDone": "Yes (automatically)",
     "grid.tooltipNotDone": "No",
 
     // Categories
