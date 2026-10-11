@@ -8,7 +8,15 @@ const settings: DisplaySettings = {
   emptyColor: "gray",
 };
 const habitData: HabitData = {
-  habits: [{ id: "a", name: "A", created: "2026-10-01", category: "" }],
+  habits: [
+    {
+      id: "a",
+      name: "A",
+      created: "2026-10-01",
+      category: "",
+      autoDoneSince: "",
+    },
+  ],
   statuses: {},
 };
 const emptyData: HabitData = { habits: [], statuses: {} };
@@ -106,7 +114,13 @@ describe("TrackerStore", () => {
   it("selects saved categories merged with ones found in the habits", async () => {
     const sport: HabitData = {
       habits: [
-        { id: "run", name: "Бег", created: "2026-10-01", category: "Спорт" },
+        {
+          id: "run",
+          name: "Бег",
+          created: "2026-10-01",
+          category: "Спорт",
+          autoDoneSince: "",
+        },
       ],
       statuses: {},
     };

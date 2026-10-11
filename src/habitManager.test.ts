@@ -24,7 +24,7 @@ describe("HabitManager", () => {
   it("creates the data file and its folder on first write", async () => {
     const manager = new HabitManager(vault.app, PATH);
 
-    await manager.addHabit("Бег", "");
+    await manager.addHabit({ name: "Бег", autoDone: false }, "");
 
     expect(vault.folders.has("pixVaultHabits")).toBe(true);
     expect(vault.files.has(PATH)).toBe(true);
@@ -33,15 +33,35 @@ describe("HabitManager", () => {
   it("adds a habit with a creation row in the given category", async () => {
     const manager = new HabitManager(vault.app, PATH);
 
-    const data = await manager.addHabit("  Читать ", "Учёба");
+    const data = await manager.addHabit(
+      { name: "  Читать ", autoDone: false },
+      "Учёба",
+    );
     const id = data.habits[0]?.id;
 
     expect(data.habits).toEqual([
-      { id, name: "Читать", created: "2026-10-03", category: "Учёба" },
+      {
+        id,
+        name: "Читать",
+        created: "2026-10-03",
+        category: "Учёба",
+        autoDoneSince: "",
+      },
     ]);
     expect(vault.files.get(PATH)).toBe(
-      `${id},Читать,2026-10-03,0,2026-10-03,Учёба`,
+      `${id},Читать,2026-10-03,,2026-10-03,Учёба,`,
     );
+  });
+
+  it("adds an auto-done habit that is done from its creation day", async () => {
+    const manager = new HabitManager(vault.app, PATH);
+
+    const data = await manager.addHabit(
+      { name: "Не курить", autoDone: true },
+      "",
+    );
+
+    expect(data.habits[0]?.autoDoneSince).toBe("2026-10-03");
   });
 
   it("toggles a day on and off and returns the written data", async () => {
@@ -61,6 +81,65 @@ describe("HabitManager", () => {
     ).rejects.toThrow("missing");
   });
 
+  it("toggles an auto-done day between missed and the auto-done default", async () => {
+    vault = createVault({
+      [PATH]: "smoke,Не курить,2026-10-01,1,2026-09-01,,2026-10-02",
+    });
+    const manager = new HabitManager(vault.app, PATH);
+
+    const missed = await manager.toggleHabitStatus("smoke", "2026-10-03");
+    expect(missed.statuses.smoke?.["2026-10-03"]).toBe(0);
+    const restored = await manager.toggleHabitStatus("smoke", "2026-10-03");
+    expect(restored.statuses.smoke).toEqual({ "2026-10-01": 1 });
+
+    await manager.toggleHabitStatus("smoke", "2026-10-01");
+    expect((await manager.loadHabits()).statuses.smoke).toEqual({
+      "2026-10-01": 0,
+    });
+  });
+
+  it("switches auto-done on from today", async () => {
+    vault = createVault({ [PATH]: "read,Читать,2026-10-01,1,2026-09-01," });
+    const manager = new HabitManager(vault.app, PATH);
+
+    const data = await manager.editHabit("read", {
+      name: "Читать",
+      autoDone: true,
+    });
+
+    expect(data.habits[0]?.autoDoneSince).toBe("2026-10-03");
+    expect(data.statuses.read).toEqual({ "2026-10-01": 1 });
+  });
+
+  it("keeps past auto-done days as done when auto-done is switched off", async () => {
+    vault = createVault({
+      [PATH]: "smoke,Не курить,2026-09-30,0,2026-09-01,,2026-09-29",
+    });
+    const manager = new HabitManager(vault.app, PATH);
+
+    const data = await manager.editHabit("smoke", {
+      name: "Не курить",
+      autoDone: false,
+    });
+
+    expect(data.habits[0]?.autoDoneSince).toBe("");
+    expect(data.statuses.smoke).toEqual({
+      "2026-09-29": 1,
+      "2026-09-30": 0,
+      "2026-10-01": 1,
+      "2026-10-02": 1,
+    });
+  });
+
+  it("skips the write when an edit changes nothing", async () => {
+    vault = createVault({ [PATH]: "read,Читать,2026-10-01,1,2026-09-01,," });
+    const manager = new HabitManager(vault.app, PATH);
+
+    await manager.editHabit("read", { name: " Читать ", autoDone: false });
+
+    expect(vault.writes).toHaveLength(0);
+  });
+
   it("renames and deletes habits", async () => {
     vault = createVault({
       [PATH]: [
@@ -70,12 +149,14 @@ describe("HabitManager", () => {
     });
     const manager = new HabitManager(vault.app, PATH);
 
-    await manager.renameHabit("read", "Read");
+    await manager.editHabit("read", { name: "Read", autoDone: false });
     const data = await manager.deleteHabit("run");
 
     expect(data.habits.map((h) => h.name)).toEqual(["Read"]);
-    expect(vault.files.get(PATH)).toBe("read,Read,2026-10-01,1,2026-09-01,");
-    await expect(manager.renameHabit("read", "  ")).rejects.toThrow();
+    expect(vault.files.get(PATH)).toBe("read,Read,2026-10-01,1,2026-09-01,,");
+    await expect(
+      manager.editHabit("read", { name: "  ", autoDone: false }),
+    ).rejects.toThrow();
   });
 
   it("moves habits between categories and returns the written data", async () => {
@@ -86,7 +167,7 @@ describe("HabitManager", () => {
 
     expect(data.habits[0]?.category).toBe("Здоровье");
     expect(vault.files.get(PATH)).toBe(
-      "run,Бег,2026-10-01,1,2026-09-01,Здоровье",
+      "run,Бег,2026-10-01,1,2026-09-01,Здоровье,",
     );
   });
 

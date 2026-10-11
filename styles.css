@@ -328,6 +328,14 @@
   background-color: var(--pvhabits-done-color);
 }
 
+.pvhabits-cell-auto {
+  background-color: color-mix(
+    in srgb,
+    var(--pvhabits-done-color) 55%,
+    var(--pvhabits-empty-color)
+  );
+}
+
 .pvhabits-cell-none {
   background-color: var(--pvhabits-empty-color);
 }
@@ -352,6 +360,6 @@
   outline-offset: 1px;
 }
 
-.setting-item-control input {
+.setting-item-control input[type="text"] {
   width: 100%;
 }

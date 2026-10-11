@@ -12,8 +12,8 @@ export const de: LocaleData = {
     "notice.addHabitFailed": "Gewohnheit konnte nicht hinzugefügt werden",
     "notice.habitDeleted": "Gewohnheit „{name}“ gelöscht",
     "notice.deleteHabitFailed": "Gewohnheit konnte nicht gelöscht werden",
-    "notice.habitRenamed": "Gewohnheit umbenannt",
-    "notice.renameHabitFailed": "Gewohnheit konnte nicht umbenannt werden",
+    "notice.habitUpdated": "Gewohnheit aktualisiert",
+    "notice.editHabitFailed": "Gewohnheit konnte nicht aktualisiert werden",
     "notice.toggleFailed": "Status der Gewohnheit konnte nicht aktualisiert werden",
     "notice.markedDone": "Für heute als erledigt markiert",
     "notice.markUndone": "Markierung entfernt",
@@ -43,21 +43,24 @@ export const de: LocaleData = {
     "modal.cancel": "Abbrechen",
     "modal.create": "Erstellen",
 
-    // Rename habit modal
-    "modal.rename.title": "Gewohnheit umbenennen",
-    "modal.rename.nameLabel": "Name",
+    // Edit habit modal
+    "modal.edit.title": "Gewohnheit bearbeiten",
+    "modal.edit.nameLabel": "Name",
+    "modal.habit.autoDoneLabel": "Automatisch erledigt",
+    "modal.habit.autoDoneDesc": "Jeder Tag gilt als erledigt, bis Sie ihn als verpasst markieren.",
     "modal.save": "Speichern",
 
     // Habit block
     "habit.stats": "🔥 {streak} T. · ✅ {done}",
     "habit.today": "Heute",
-    "habit.renameAria": "Umbenennen",
+    "habit.editAria": "Bearbeiten",
     "habit.deleteAria": "Löschen",
     "habit.idTooltip": "ID: {id}",
 
     // Grid tooltip
     "grid.tooltip": "Datum: {date}, Erledigt: {yes}",
     "grid.tooltipDone": "Ja",
+    "grid.tooltipAutoDone": "Ja (automatisch)",
     "grid.tooltipNotDone": "Nein",
 
     // Categories

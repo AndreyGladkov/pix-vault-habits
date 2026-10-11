@@ -9,7 +9,12 @@ import {
   WorkspaceLeaf,
 } from "obsidian";
 import { HabitManager } from "./habitManager";
-import { NO_CATEGORY, type HabitData, type HabitRecord } from "./habitData";
+import {
+  isDone,
+  NO_CATEGORY,
+  type HabitData,
+  type HabitRecord,
+} from "./habitData";
 import {
   withCategory,
   withoutCategory,
@@ -22,8 +27,8 @@ import {
   openAddCategoryModal,
   openAddHabitModal,
   openConfirmDeleteModal,
+  openEditHabitModal,
   openRenameCategoryModal,
-  openRenameHabitModal,
 } from "./ui/modals";
 import { HabitTrackerView, VIEW_TYPE } from "./view";
 import { formatDate } from "./csv";
@@ -62,7 +67,7 @@ export default class PixVaultHabitsPlugin extends Plugin {
     addHabit: (category) => void this.addHabit(category),
     refresh: () => void this.reloadHabits(),
     toggleDay: (habitId, date) => void this.toggleDate(habitId, date),
-    renameHabit: (habit) => void this.renameHabit(habit),
+    editHabit: (habit) => void this.editHabit(habit),
     deleteHabit: (habit) => this.deleteHabit(habit),
     moveHabit: (habit, category) => void this.moveHabit(habit, category),
     addCategory: () => this.addCategory(),
@@ -199,23 +204,24 @@ export default class PixVaultHabitsPlugin extends Plugin {
   }
 
   private async addHabit(category: string) {
-    const name = await openAddHabitModal(this.app);
-    if (!name) return;
+    const habit = await openAddHabitModal(this.app);
+    if (!habit) return;
     const data = await this.attempt("addHabit", "notice.addHabitFailed", () =>
-      this.habitManager.addHabit(name, category),
+      this.habitManager.addHabit(habit, category),
     );
     if (!data) return;
     this.store.applyChanges({ data });
-    new Notice(t("notice.habitAdded", { name }));
+    new Notice(t("notice.habitAdded", { name: habit.name }));
   }
 
-  async toggleDate(habitId: string, date: string): Promise<number | null> {
+  async toggleDate(habitId: string, date: string): Promise<boolean | null> {
     const data = await this.attempt("toggleDate", "notice.toggleFailed", () =>
       this.habitManager.toggleHabitStatus(habitId, date),
     );
     if (!data) return null;
     this.store.applyChanges({ data });
-    return data.statuses[habitId]?.[date] ?? 0;
+    const habit = data.habits.find((h) => h.id === habitId);
+    return !!habit && isDone(habit, data.statuses[habitId] ?? {}, date);
   }
 
   deleteHabit({ id, name }: HabitRecord) {
@@ -235,17 +241,15 @@ export default class PixVaultHabitsPlugin extends Plugin {
     );
   }
 
-  private async renameHabit(habit: HabitRecord) {
-    const name = await openRenameHabitModal(this.app, habit.name);
-    if (!name) return;
-    const data = await this.attempt(
-      "renameHabit",
-      "notice.renameHabitFailed",
-      () => this.habitManager.renameHabit(habit.id, name),
+  private async editHabit(habit: HabitRecord) {
+    const edit = await openEditHabitModal(this.app, habit);
+    if (!edit) return;
+    const data = await this.attempt("editHabit", "notice.editHabitFailed", () =>
+      this.habitManager.editHabit(habit.id, edit),
     );
     if (!data) return;
     this.store.applyChanges({ data });
-    new Notice(t("notice.habitRenamed"));
+    new Notice(t("notice.habitUpdated"));
   }
 
   private async moveHabit(habit: HabitRecord, category: string) {
@@ -332,9 +336,9 @@ export default class PixVaultHabitsPlugin extends Plugin {
     }
 
     new HabitPickerModal(this.app, habits.data.habits, async (habit) => {
-      const status = await this.toggleDate(habit.id, formatDate());
-      if (status !== null) {
-        new Notice(status ? t("notice.markedDone") : t("notice.markUndone"));
+      const done = await this.toggleDate(habit.id, formatDate());
+      if (done !== null) {
+        new Notice(done ? t("notice.markedDone") : t("notice.markUndone"));
       }
     }).open();
   }

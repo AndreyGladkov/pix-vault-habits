@@ -1,9 +1,14 @@
 import { App, TFile, TFolder, normalizePath } from "obsidian";
-import { generateId, formatDate } from "./csv";
+import { formatDate, generateId } from "./csv";
 import {
+  isAutoDone,
+  NOT_AUTO_DONE,
   parseHabitData,
   serializeHabitData,
+  setAutoDone,
+  toggleDay,
   type HabitData,
+  type HabitEdit,
 } from "./habitData";
 
 export class HabitManager {
@@ -57,17 +62,22 @@ export class HabitManager {
     return parseHabitData(await this.app.vault.read(file));
   }
 
-  async addHabit(name: string, category: string): Promise<HabitData> {
+  async addHabit(
+    { name, autoDone }: HabitEdit,
+    category: string,
+  ): Promise<HabitData> {
     const trimmed = name.trim();
     if (!trimmed) {
       throw new Error("Habit name cannot be empty");
     }
 
+    const created = formatDate();
     const habit = {
       id: generateId(trimmed),
       name: trimmed,
-      created: formatDate(),
+      created,
       category,
+      autoDoneSince: autoDone ? created : NOT_AUTO_DONE,
     };
     return this.updateHabits((data) => {
       data.habits.push(habit);
@@ -77,11 +87,11 @@ export class HabitManager {
 
   async toggleHabitStatus(habitId: string, date: string): Promise<HabitData> {
     return this.updateHabits((data) => {
-      if (!data.habits.some((h) => h.id === habitId)) {
+      const habit = data.habits.find((h) => h.id === habitId);
+      if (!habit) {
         throw new Error(`Habit not found: ${habitId}`);
       }
-      const dayMap = (data.statuses[habitId] ??= {});
-      dayMap[date] = dayMap[date] ? 0 : 1;
+      toggleDay(habit, (data.statuses[habitId] ??= {}), date);
       return true;
     });
   }
@@ -94,15 +104,27 @@ export class HabitManager {
     });
   }
 
-  async renameHabit(habitId: string, newName: string): Promise<HabitData> {
-    const trimmed = newName.trim();
+  async editHabit(
+    habitId: string,
+    { name, autoDone }: HabitEdit,
+  ): Promise<HabitData> {
+    const trimmed = name.trim();
     if (!trimmed) {
       throw new Error("Habit name cannot be empty");
     }
     return this.updateHabits((data) => {
       const habit = data.habits.find((h) => h.id === habitId);
       if (!habit) return false;
+      if (habit.name === trimmed && isAutoDone(habit) === autoDone) {
+        return false;
+      }
       habit.name = trimmed;
+      setAutoDone(
+        habit,
+        (data.statuses[habitId] ??= {}),
+        autoDone,
+        formatDate(),
+      );
       return true;
     });
   }

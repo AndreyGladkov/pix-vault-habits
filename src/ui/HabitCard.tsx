@@ -41,8 +41,8 @@ export const HabitCard = ({
         </span>
         <span className="pvhabits-habit-stats">
           {t("habit.stats", {
-            streak: computeStreak(dayMap, today),
-            done: countDone(dayMap),
+            streak: computeStreak(habit, dayMap, today),
+            done: countDone(habit, dayMap, today),
           })}
         </span>
         <HorizontalScroller className="pvhabits-habit-actions-scroller">
@@ -72,8 +72,8 @@ export const HabitCard = ({
             </button>
             <button
               className="pvhabits-btn pvhabits-btn-icon"
-              aria-label={t("habit.renameAria")}
-              onClick={() => actions.renameHabit(habit)}
+              aria-label={t("habit.editAria")}
+              onClick={() => actions.editHabit(habit)}
             >
               ✎
             </button>
@@ -89,6 +89,7 @@ export const HabitCard = ({
       </div>
       <ContributionGrid
         calendar={calendar}
+        habit={habit}
         dayMap={dayMap}
         today={today}
         onToggleDay={toggleDay}
