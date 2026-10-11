@@ -1,3 +1,9 @@
+## 2.0.0 (2026-10-11)
+
+### Feat
+
+- **CSV-structure,-ui,-habitData**: add auto-complete habits
+
 ## 1.2.1 (2026-10-03)
 
 ### Fix
